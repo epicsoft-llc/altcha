@@ -1,0 +1,8 @@
+# Written as a whitelist: a new file next to this one stays out of the build context
+# without anyone having to remember to add it here.
+*
+!Dockerfile
+!package.json
+!package-lock.json
+!src
+!ui
