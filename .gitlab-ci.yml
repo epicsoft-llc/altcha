@@ -68,8 +68,9 @@ release:
   variables:
     VERSION: "${CI_COMMIT_TAG}"
   script:
-    - PACKAGE_VERSION=$(sed -n 's/^  "version": "\(.*\)",$/\1/p' package.json)
+    #### a block scalar: as a plain list item the ': ' inside the sed expression would make YAML read a key
     - |
+      PACKAGE_VERSION=$(sed -n 's/^  "version": "\(.*\)",$/\1/p' package.json)
       if [ "${PACKAGE_VERSION}" != "${VERSION}" ]; then
         echo "Tag ${VERSION} does not match version ${PACKAGE_VERSION} in package.json"
         exit 1
