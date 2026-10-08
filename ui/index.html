@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>ALTCHA service</title>
+  <link rel="stylesheet" href="app.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <svg class="sprite" aria-hidden="true" focusable="false">
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7.5 3v5.5c0 4.6-3.1 8.4-7.5 9.9-4.4-1.5-7.5-5.3-7.5-9.9V6L12 3z"/><path d="M8.8 12.2l2.2 2.2 4.3-4.6"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4L6 18M18 6l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.5 13.2A8.5 8.5 0 1 1 10.8 3.5a6.6 6.6 0 0 0 9.7 9.7z"/></symbol>
+    <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12.5" rx="2"/><path d="M8.5 20.5h7M12 16.5v4"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4.2L19.4 8.8a2 2 0 0 0 0-2.8l-1.4-1.4a2 2 0 0 0-2.8 0L4 15.8V20z"/><path d="M13.5 6.3l4.2 4.2"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><path d="M8.5 7L3.5 12l5 5M15.5 7l5 5-5 5"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 7l8.5 6 8.5-6"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 12.5h9l1-12.5M10 11v5M14 11v5"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3.5 3.5v17h17"/><path d="M7.5 15l4-4.5 3 3 5-6"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3.5l9.5 16.5h-19L12 3.5z"/><path d="M12 10v4.5M12 17.2v.3"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9.5" rx="2"/><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3"/></symbol>
+    <symbol id="i-unlock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9.5" rx="2"/><path d="M8.5 11V8a3.5 3.5 0 0 1 6.6-1.6"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></symbol>
+    <symbol id="i-table" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M3.5 14.5h17M9.5 9.5v10"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.6 3.6 5.4 3.6 8.5s-1.1 5.9-3.6 8.5c-2.5-2.6-3.6-5.4-3.6-8.5S9.5 6.1 12 3.5z"/></symbol>
+    <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M3.5 13.5l2.6-8h11.8l2.6 8v5.5a1.5 1.5 0 0 1-1.5 1.5h-14a1.5 1.5 0 0 1-1.5-1.5v-5.5z"/><path d="M3.5 13.5h5l1.5 2.5h4l1.5-2.5h5"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5"/></symbol>
+  </svg>
+
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <svg class="icon brand-mark"><use href="#i-shield"/></svg>
+        <div>
+          <span class="brand-name">ALTCHA service</span>
+          <span id="version" class="brand-version"></span>
+        </div>
+      </div>
+      <div class="topbar-status" id="status-pills"></div>
+      <div class="topbar-actions">
+        <span id="updated" class="muted small" aria-live="off"></span>
+        <button id="refresh" type="button" class="icon-button" aria-label="Refresh now" title="Refresh now">
+          <svg class="icon"><use href="#i-refresh"/></svg>
+        </button>
+        <button id="theme" type="button" class="icon-button" aria-label="Theme: system" title="Theme: system">
+          <svg class="icon"><use href="#i-monitor"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="page">
+    <ul id="notices" class="notices"></ul>
+
+    <section class="filters" aria-label="Scope of the statistics">
+      <div class="segmented" role="radiogroup" aria-label="Period" id="range">
+        <button type="button" role="radio" data-range="24h" aria-checked="true">24 h</button>
+        <button type="button" role="radio" data-range="7d" aria-checked="false">7 days</button>
+        <button type="button" role="radio" data-range="30d" aria-checked="false">30 days</button>
+        <button type="button" role="radio" data-range="90d" aria-checked="false">90 days</button>
+      </div>
+      <label class="select">
+        <span class="visually-hidden">Site</span>
+        <select id="scope-site"></select>
+        <svg class="icon select-chevron"><use href="#i-chevron"/></svg>
+      </label>
+    </section>
+
+    <section id="kpis" class="kpis" aria-label="Totals for the period"></section>
+
+    <section class="panels">
+      <article class="card chart-card" aria-labelledby="activity-title">
+        <header class="card-head">
+          <div>
+            <h2 id="activity-title">Activity</h2>
+            <p id="activity-caption" class="muted small"></p>
+          </div>
+          <div class="card-tools">
+            <div id="legend" class="legend"></div>
+            <button id="table-toggle" type="button" class="ghost small-button" aria-pressed="false">
+              <svg class="icon"><use href="#i-table"/></svg><span>Table</span>
+            </button>
+          </div>
+        </header>
+        <div id="activity-chart"></div>
+        <div id="activity-table" class="table-scroll" hidden></div>
+      </article>
+
+      <article class="card reasons-card" aria-labelledby="reasons-title">
+        <header class="card-head">
+          <div>
+            <h2 id="reasons-title">Refused requests</h2>
+            <p class="muted small">by reason, same period</p>
+          </div>
+        </header>
+        <ol id="reasons" class="reasons"></ol>
+      </article>
+    </section>
+
+    <section class="card sites-card" aria-labelledby="sites-title">
+      <header class="card-head">
+        <div>
+          <h2 id="sites-title">Sites <span id="sites-count" class="count"></span></h2>
+          <p class="muted small">A site is the list of origins a form may be used from, and optionally the address its submissions are mailed to.</p>
+        </div>
+        <button id="new-site" type="button" class="primary">
+          <svg class="icon"><use href="#i-plus"/></svg><span>New site</span>
+        </button>
+      </header>
+      <div class="sites-toolbar">
+        <label class="search">
+          <svg class="icon"><use href="#i-search"/></svg>
+          <span class="visually-hidden">Search sites</span>
+          <input id="search" type="search" placeholder="Search name, origin, address" autocomplete="off" spellcheck="false">
+          <kbd>/</kbd>
+        </label>
+        <div class="segmented" role="radiogroup" aria-label="State" id="state-filter">
+          <button type="button" role="radio" data-state="all" aria-checked="true">All</button>
+          <button type="button" role="radio" data-state="enabled" aria-checked="false">Enabled</button>
+          <button type="button" role="radio" data-state="disabled" aria-checked="false">Disabled</button>
+        </div>
+        <label class="select">
+          <span class="visually-hidden">Sort</span>
+          <select id="sort">
+            <option value="name">Name A–Z</option>
+            <option value="activity">Most active (24 h)</option>
+            <option value="recent">Recently active</option>
+          </select>
+          <svg class="icon select-chevron"><use href="#i-chevron"/></svg>
+        </label>
+      </div>
+      <div class="table-scroll sites-wrap">
+        <table id="sites" class="sites">
+          <thead>
+            <tr>
+              <th class="col-switch"><span class="visually-hidden">Enabled</span></th>
+              <th>Site</th>
+              <th>Mail to</th>
+              <th class="num">Last 24 h</th>
+              <th>Last activity</th>
+              <th class="col-actions"><span class="visually-hidden">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div id="sites-empty" class="empty" hidden></div>
+    </section>
+
+    <details class="card settings-card">
+      <summary>
+        <svg class="icon"><use href="#i-settings"/></svg>
+        <span>Settings</span>
+        <span class="muted small">set by environment variables, read only</span>
+        <svg class="icon summary-chevron"><use href="#i-chevron"/></svg>
+      </summary>
+      <dl id="settings" class="settings"></dl>
+    </details>
+  </main>
+
+  <dialog id="site-dialog" class="dialog" aria-labelledby="site-dialog-title">
+    <form id="site-form" novalidate>
+      <header class="dialog-head">
+        <h2 id="site-dialog-title">New site</h2>
+        <button type="button" class="icon-button" data-close aria-label="Close"><svg class="icon"><use href="#i-x"/></svg></button>
+      </header>
+      <div class="dialog-body">
+        <div class="field">
+          <label for="f-name">Name</label>
+          <input id="f-name" name="name" required autocomplete="off" spellcheck="false" maxlength="63" placeholder="example.com">
+          <small class="hint">Lowercase letters, digits, dot and dash. Part of every challenge — renaming a site invalidates the challenges already handed out.</small>
+          <small class="error" data-for="name"></small>
+        </div>
+        <div class="field">
+          <div class="label-row">
+            <label for="f-origins">Origins</label>
+            <span id="origins-count" class="muted small"></span>
+          </div>
+          <textarea id="f-origins" name="origins" rows="5" required spellcheck="false" placeholder="https://example.com&#10;https://www.example.com"></textarea>
+          <div class="field-actions">
+            <small class="hint">One per line, or separated by spaces or commas. Scheme and host only. Requests from any other page are refused.</small>
+            <button id="add-www" type="button" class="ghost small-button">Add www variants</button>
+          </div>
+          <small class="error" data-for="origins"></small>
+        </div>
+        <fieldset class="group">
+          <legend>Mail delivery</legend>
+          <div class="field">
+            <label for="f-recipient">Mail to</label>
+            <input id="f-recipient" name="recipient" type="email" autocomplete="off" spellcheck="false" placeholder="office@example.com">
+            <small class="hint">Where /submit delivers the form. Empty: the site only uses challenge and verify.</small>
+            <small class="error" data-for="recipient"></small>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="f-subjectPrefix">Subject prefix</label>
+              <input id="f-subjectPrefix" name="subjectPrefix" maxlength="100" placeholder="[example.com]">
+              <small class="error" data-for="subjectPrefix"></small>
+            </div>
+            <div class="field">
+              <label for="f-submitPerHour">Submissions per hour</label>
+              <input id="f-submitPerHour" name="submitPerHour" type="number" min="1" max="100000" step="1" required>
+              <small class="error" data-for="submitPerHour"></small>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="f-successUrl">Page after sending</label>
+              <input id="f-successUrl" name="successUrl" type="url" spellcheck="false" placeholder="https://example.com/thanks">
+              <small class="error" data-for="successUrl"></small>
+            </div>
+            <div class="field">
+              <label for="f-errorUrl">Page after an error</label>
+              <input id="f-errorUrl" name="errorUrl" type="url" spellcheck="false" placeholder="https://example.com/contact">
+              <small class="error" data-for="errorUrl"></small>
+            </div>
+          </div>
+          <small class="hint">Optional. A plain HTML form is sent here instead of seeing JSON; the error page receives <code>?error=…</code>. Both have to be on one of the origins.</small>
+        </fieldset>
+        <div class="field">
+          <label for="f-note">Note</label>
+          <input id="f-note" name="note" maxlength="500" placeholder="Only for you - who uses it, since when">
+          <small class="error" data-for="note"></small>
+        </div>
+        <label class="switch-row">
+          <button id="f-enabled" type="button" role="switch" aria-checked="true" class="switch"><span></span></button>
+          <span>Enabled — challenges are handed out and forms accepted</span>
+        </label>
+        <p class="error" id="form-error" role="alert"></p>
+      </div>
+      <footer class="dialog-foot">
+        <button type="button" class="ghost" data-close>Cancel</button>
+        <button type="submit" class="primary" id="save-site">Save</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="embed-dialog" class="dialog dialog-wide" aria-labelledby="embed-title">
+    <header class="dialog-head">
+      <div>
+        <h2 id="embed-title">Embed</h2>
+        <p id="embed-hint" class="muted small"></p>
+      </div>
+      <button type="button" class="icon-button" data-close aria-label="Close"><svg class="icon"><use href="#i-x"/></svg></button>
+    </header>
+    <div class="dialog-body">
+      <div class="embed-controls">
+        <div class="tabs" role="tablist" aria-label="Integration">
+          <button type="button" role="tab" id="tab-form" aria-selected="true" aria-controls="panel-form">HTML form</button>
+          <button type="button" role="tab" id="tab-backend" aria-selected="false" aria-controls="panel-backend" tabindex="-1">Own backend</button>
+          <button type="button" role="tab" id="tab-csp" aria-selected="false" aria-controls="panel-csp" tabindex="-1">Content Security Policy</button>
+        </div>
+        <label class="select">
+          <span class="visually-hidden">Widget language</span>
+          <select id="embed-language"></select>
+          <svg class="icon select-chevron"><use href="#i-chevron"/></svg>
+        </label>
+      </div>
+      <div id="panel-form" role="tabpanel" aria-labelledby="tab-form" class="code-panel">
+        <p class="muted small" id="form-note"></p>
+        <div class="code"><pre><code id="code-form"></code></pre><button type="button" class="icon-button copy" data-copy="code-form" aria-label="Copy"><svg class="icon"><use href="#i-copy"/></svg></button></div>
+      </div>
+      <div id="panel-backend" role="tabpanel" aria-labelledby="tab-backend" class="code-panel" hidden>
+        <p class="muted small">The widget puts its solution into the form field <code>altcha</code>. Your form posts to your backend, which asks this service:</p>
+        <div class="code"><pre><code id="code-widget"></code></pre><button type="button" class="icon-button copy" data-copy="code-widget" aria-label="Copy"><svg class="icon"><use href="#i-copy"/></svg></button></div>
+        <div class="code"><pre><code id="code-verify"></code></pre><button type="button" class="icon-button copy" data-copy="code-verify" aria-label="Copy"><svg class="icon"><use href="#i-copy"/></svg></button></div>
+      </div>
+      <div id="panel-csp" role="tabpanel" aria-labelledby="tab-csp" class="code-panel" hidden>
+        <p class="muted small">Only needed if the page sends a Content Security Policy. The widget loads from this service, fetches its challenge from it, solves it in Web Workers from a <code>blob:</code> URL and adds one <code>&lt;style&gt;</code> element — allow <code>'unsafe-inline'</code> styles or put your CSP nonce into <code>&lt;meta name="csp-nonce" content="…"&gt;</code>.</p>
+        <div class="code"><pre><code id="code-csp"></code></pre><button type="button" class="icon-button copy" data-copy="code-csp" aria-label="Copy"><svg class="icon"><use href="#i-copy"/></svg></button></div>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="confirm-dialog" class="dialog dialog-narrow" aria-labelledby="confirm-title">
+    <header class="dialog-head">
+      <h2 id="confirm-title">Delete site</h2>
+    </header>
+    <div class="dialog-body">
+      <p id="confirm-text"></p>
+    </div>
+    <footer class="dialog-foot">
+      <button type="button" class="ghost" data-close>Cancel</button>
+      <button type="button" id="confirm-ok" class="danger">Delete</button>
+    </footer>
+  </dialog>
+
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+</body>
+</html>

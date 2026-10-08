@@ -1,0 +1,45 @@
+# Alerting rules to start from - scrape the admin port's /metrics first.
+groups:
+  - name: altcha
+    rules:
+      - alert: AltchaMailFailing
+        expr: increase(altcha_smtp_errors_total[30m]) > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: "Form mails for {{ $labels.site }} are not delivered"
+
+      - alert: AltchaNoMailForDays
+        expr: time() - altcha_last_mail_sent_timestamp_seconds > 7 * 86400
+        labels:
+          severity: info
+        annotations:
+          summary: "No form mail for {{ $labels.site }} in a week - is the form still on the page?"
+
+      - alert: AltchaRefusalsHigh
+        expr: sum by (site) (rate(altcha_rejected_total{reason!~"origin_unknown|route_unknown"}[15m])) > 0.5
+        labels:
+          severity: info
+        annotations:
+          summary: "Many refused requests for {{ $labels.site }}"
+
+      - alert: AltchaSolveSlow
+        expr: histogram_quantile(0.9, sum by (le) (rate(altcha_solve_seconds_bucket[1h]))) > 8
+        labels:
+          severity: info
+        annotations:
+          summary: "Visitors need more than 8 s to solve a challenge - lower ALTCHA_COST"
+
+      - alert: AltchaAdminSignInFailures
+        expr: increase(altcha_admin_auth_refused_total{reason=~"invalid_credentials|invalid_token|too_many_failures"}[15m]) > 5
+        labels:
+          severity: warning
+        annotations:
+          summary: "Failed sign-ins on the admin port ({{ $labels.reason }}) - is it reachable from where it should not be?"
+
+      - alert: AltchaInternalErrors
+        expr: increase(altcha_internal_errors_total[15m]) > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: "Unexpected errors in {{ $labels.area }}"
