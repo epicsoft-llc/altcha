@@ -22,9 +22,15 @@ test:
   services:
     - docker:dind
   before_script:
-    - echo "$CI_JOB_TOKEN" | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
-    - echo "$DOCKER_HUB_TOKEN" | docker login -u "$DOCKER_HUB_USER" --password-stdin
-    - docker buildx use epicbuilder > /dev/null 2>&1 || docker buildx create --name epicbuilder --use > /dev/null 2>&1
+    #### The job log is public: 'quiet' prints a command's output only when it fails. A successful
+    #### login warns about its credential file, harmless in a throwaway container but alarming to read.
+    #### The dind service runs with TLS, and buildx takes TLS settings only from a context, not from the environment.
+    - |
+      quiet() { out=$("$@" 2>&1) || { echo "$out"; return 1; }; }
+      echo "$CI_JOB_TOKEN" | quiet docker login -u gitlab-ci-token --password-stdin "$CI_REGISTRY"
+      echo "$DOCKER_HUB_TOKEN" | quiet docker login -u "$DOCKER_HUB_USER" --password-stdin
+      quiet docker context create dind
+      quiet docker buildx create --name epicbuilder --driver docker-container --use dind
   after_script:
     - docker logout $CI_REGISTRY
     - docker logout
@@ -106,9 +112,10 @@ uploadReadme:
         echo "README.md has $size bytes, Docker Hub takes 25000 - shorten it or move a section to examples/"
         exit 1
       fi
-    - docker run --rm -v $PWD:/workspace
+    #### '-e NAME' without a value takes it from the environment - '-e NAME=value' would put the token in the process list
+    - DOCKERHUB_PASSWORD="$DOCKER_HUB_TOKEN" docker run --rm -v $PWD:/workspace
       -e DOCKERHUB_USERNAME=${DOCKER_HUB_USER}
-      -e DOCKERHUB_PASSWORD=${DOCKER_HUB_TOKEN}
+      -e DOCKERHUB_PASSWORD
       -e DOCKERHUB_REPOSITORY=${DOCKER_REGISTRY}
       -e SHORT_DESCRIPTION="Self-hosted ALTCHA challenge, verification and form mail service with an admin web UI"
       -e README_FILEPATH='/workspace/README.md'
@@ -129,7 +136,10 @@ github-release:
   script:
     - |
       api="https://api.github.com/repos/${GITHUB_REPO}"
-      auth="Authorization: Bearer ${GITHUB_TOKEN}"
+      #### curl reads the header from a file, so the token stays out of the process list
+      auth_file=$(mktemp)
+      printf 'Authorization: Bearer %s\n' "${GITHUB_TOKEN}" > "$auth_file"
+      auth="@$auth_file"
       notes=$(awk -v head="## [${CI_COMMIT_TAG}]" 'index($0, head) == 1 { found = 1; next } /^## \[/ { found = 0 } found' CHANGELOG.md)
       if [ -z "$notes" ]; then
         echo "CHANGELOG.md has no entry for ${CI_COMMIT_TAG}"
