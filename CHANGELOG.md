@@ -13,6 +13,13 @@ the versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 **A release is a git tag `X.Y.Z`** that matches `version` in `package.json`. CI builds `X.Y.Z`, `X.Y`, `X`
 from it, moves `latest` and creates the GitHub release from the entry below.
 
+## [0.1.0] - 2026-10-09
+
+### Added
+
+- The admin UI presents epicsoft LLC: "by epicsoft" in the header and a card at the end of the page, with links to
+  epicsoft.one and the source code.
+
 ## [0.0.1] - 2026-10-08
 
 First release.

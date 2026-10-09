@@ -446,6 +446,77 @@ kbd {
   color: var(--muted);
 }
 
+.brand-by {
+  margin-left: 4px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.brand-by:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+/* epicsoft at the end of the page - the same card as everything above it */
+.page.page-foot {
+  padding-top: 32px;
+  padding-bottom: 40px;
+}
+
+.promo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 24px 28px;
+}
+
+.promo-text {
+  flex: 1 1 420px;
+}
+
+.promo-eyebrow {
+  margin: 0 0 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.promo-title {
+  margin: 0 0 6px;
+  font-size: 1.25rem;
+  font-weight: 650;
+}
+
+.promo-lead {
+  margin: 0;
+  max-width: 62ch;
+  color: var(--muted);
+}
+
+.promo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.promo-actions a {
+  text-decoration: none;
+}
+
+.promo-actions .ghost {
+  color: var(--ink);
+}
+
+.promo-actions .ghost:hover {
+  background: var(--surface-hover);
+}
+
 .topbar-status {
   display: flex;
   gap: 8px;
