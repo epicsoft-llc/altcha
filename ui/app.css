@@ -517,6 +517,15 @@ kbd {
   background: var(--surface-hover);
 }
 
+/* the logo as a mask takes the text colour of the button */
+.epicsoft-logo {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  background: currentColor;
+  mask: url(epicsoft.svg) center / contain no-repeat;
+}
+
 .topbar-status {
   display: flex;
   gap: 8px;
