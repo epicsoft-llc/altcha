@@ -14,6 +14,7 @@ test('defaults', () => {
   assert.equal(config.altcha.algorithm, 'PBKDF2/SHA-256');
   assert.equal(config.admin.enabled, false);
   assert.equal(config.smtp, null);
+  assert.equal(config.notifuse, null);
 });
 
 test('HMAC_SECRET is required and has a minimum length', () => {
@@ -62,6 +63,22 @@ test('SMTP settings are checked', () => {
   assert.throws(() => loadConfig({ ...smtp, SMTP_SECURITY: 'none', SMTP_USERNAME: 'u', SMTP_PASSWORD: 'p' }), /clear text/);
   assert.throws(() => loadConfig({ ...smtp, SMTP_USERNAME: 'u' }), /together/);
   assert.throws(() => loadConfig({ ...smtp, SMTP_SECURITY: 'ssl' }), /one of/);
+});
+
+test('the Notifuse webhook needs its secret, a recipient and SMTP', () => {
+  const smtp = { ...base, SMTP_HOST: 'mail.example.com', SMTP_FROM: 'form@example.com' };
+  const key = Buffer.alloc(32, 7);
+  const webhook = { NOTIFUSE_WEBHOOK_SECRET: 'whsec_' + key.toString('base64'), NOTIFUSE_NOTIFY_TO: 'news+notifuse@example.com' };
+  assert.deepEqual(loadConfig({ ...smtp, ...webhook }).notifuse, { keys: [key], to: 'news+notifuse@example.com' });
+  const two = `${webhook.NOTIFUSE_WEBHOOK_SECRET}, whsec_${Buffer.alloc(32, 8).toString('base64')}`;
+  assert.equal(loadConfig({ ...smtp, ...webhook, NOTIFUSE_WEBHOOK_SECRET: two }).notifuse.keys.length, 2);
+  assert.throws(() => loadConfig({ ...smtp, NOTIFUSE_WEBHOOK_SECRET: webhook.NOTIFUSE_WEBHOOK_SECRET }), /together/);
+  assert.throws(() => loadConfig({ ...smtp, NOTIFUSE_NOTIFY_TO: webhook.NOTIFUSE_NOTIFY_TO }), /together/);
+  assert.throws(() => loadConfig({ ...base, ...webhook }), /SMTP_HOST/);
+  assert.throws(() => loadConfig({ ...smtp, ...webhook, NOTIFUSE_NOTIFY_TO: 'News <news@example.com>' }), /plain mail address/);
+  for (const wrong of [key.toString('base64'), 'whsec_' + Buffer.alloc(16).toString('base64'), 'whsec_not base64', 'whsec_' + key.toString('base64').slice(0, -1), ' , ']) {
+    assert.throws(() => loadConfig({ ...smtp, ...webhook, NOTIFUSE_WEBHOOK_SECRET: wrong }), /whsec_/, wrong);
+  }
 });
 
 test('numbers and lists are validated', () => {

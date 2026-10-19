@@ -54,6 +54,7 @@ Every request needs a sign-in when one is configured - see *Signing in* in the R
 | `POST /api/sites/<id>/test-mail` | send a test mail to the site's recipient |
 | `GET /metrics` | Prometheus metrics |
 | `GET /healthz` | `200 ok` when the database answers — **without authentication**, for the container health check |
+| `POST /notifuse/webhook` | list events of Notifuse, mailed to `NOTIFUSE_NOTIFY_TO` — **without the sign-in**, every delivery is signed; only with `NOTIFUSE_WEBHOOK_SECRET`. See the [Notifuse webhook](notifuse-webhook.md) |
 
 Every changing request needs the header `X-Altcha-Admin: 1` - except one signed in with the API token. A browser sends Basic credentials and proxy session cookies along with any request to the port, also one triggered by a foreign page; a custom header cannot be set by such a page without a CORS preflight, which the admin port never grants. A bearer token, on the other hand, is never sent by a browser on its own.
 

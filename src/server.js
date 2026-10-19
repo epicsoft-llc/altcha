@@ -28,7 +28,7 @@ const PUBLIC_ROUTES = new Set(['/widget.js', '/widget.i18n.js', '/challenge', '/
 const ADMIN_ROUTES = [
   [/^\/api\/sites\/\d+\/test-mail$/, '/api/sites/:id/test-mail'],
   [/^\/api\/sites\/\d+$/, '/api/sites/:id'],
-  [/^\/(api\/(status|stats|sites)|metrics|healthz)$/, null],
+  [/^\/(api\/(status|stats|sites)|metrics|healthz|notifuse\/webhook)$/, null],
 ];
 
 function readJsonFile(relative) {
@@ -178,6 +178,9 @@ export async function start(config, log = consoleLog) {
     .filter((m) => m !== null);
   log.info(`public port ${port}, admin port ${adminPort} ${signIn.length === 0 ? 'without authentication' : 'with ' + signIn.join(', ')}`);
   log.info(config.smtp === null ? 'SMTP not configured - /submit is off' : `SMTP ${config.smtp.host}:${config.smtp.port} (${config.smtp.security})`);
+  if (config.notifuse !== null) {
+    log.info('Notifuse webhook on the admin port at /notifuse/webhook');
+  }
 
   async function close() {
     clearInterval(purge);

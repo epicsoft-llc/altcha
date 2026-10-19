@@ -1,7 +1,7 @@
-// Builds the mail for a form submission. Subject and body go out base64 encoded: that
-// settles line length, dot stuffing and character sets at once, and no visitor input
-// ever reaches a header in readable form. Reply-To is the one exception, and only
-// after a strict address check.
+// Builds the mail for a form submission or a newsletter event. Subject and body go
+// out base64 encoded: that settles line length, dot stuffing and character sets at
+// once, and no visitor input ever reaches a header in readable form. Reply-To is the
+// one exception, and only after a strict address check.
 
 import crypto from 'node:crypto';
 import { MAIL_ADDRESS } from './config.js';
@@ -48,6 +48,24 @@ export function replyToFrom(fields) {
   return MAIL_ADDRESS.test(email) ? email : '';
 }
 
+function compose({ smtp, to, subject, lines, extra, now }) {
+  const body = lines.join('\n').replace(/\n/g, '\r\n') + '\r\n';
+  const domain = smtp.from.split('@')[1];
+  const from = smtp.fromName === '' ? smtp.from : `${encodeHeader(smtp.fromName)} <${smtp.from}>`;
+  const head = [
+    `From: ${from}`,
+    `To: ${to}`,
+    `Subject: ${encodeHeader(subject)}`,
+    `Date: ${rfc5322Date(now)}`,
+    `Message-ID: <${crypto.randomUUID()}@${domain}>`,
+    'MIME-Version: 1.0',
+    'Content-Type: text/plain; charset=UTF-8',
+    'Content-Transfer-Encoding: base64',
+    ...extra,
+  ];
+  return head.join('\r\n') + '\r\n\r\n' + wrap(Buffer.from(body, 'utf8').toString('base64')) + '\r\n';
+}
+
 export function buildMessage({ smtp, site, origin, fields, now = new Date() }) {
   const subjectText = String(fields.subject ?? '').replace(CONTROL, ' ').trim().slice(0, MAX_SUBJECT) || 'Form submission';
   const lines = [];
@@ -55,24 +73,44 @@ export function buildMessage({ smtp, site, origin, fields, now = new Date() }) {
     lines.push(`${name}: ${String(value).replace(/\r\n?/g, '\n')}`);
   }
   lines.push('', '--', `Site: ${site.name}`, `Origin: ${origin}`, `Received: ${now.toISOString()}`);
-  const body = lines.join('\n').replace(/\n/g, '\r\n') + '\r\n';
-
-  const domain = smtp.from.split('@')[1];
-  const from = smtp.fromName === '' ? smtp.from : `${encodeHeader(smtp.fromName)} <${smtp.from}>`;
-  const head = [
-    `From: ${from}`,
-    `To: ${site.recipient}`,
-    `Subject: ${encodeHeader([site.subjectPrefix, subjectText].filter((part) => part !== '').join(' '))}`,
-    `Date: ${rfc5322Date(now)}`,
-    `Message-ID: <${crypto.randomUUID()}@${domain}>`,
-    'MIME-Version: 1.0',
-    'Content-Type: text/plain; charset=UTF-8',
-    'Content-Transfer-Encoding: base64',
-    `X-Altcha-Site: ${site.name}`,
-  ];
+  const extra = [`X-Altcha-Site: ${site.name}`];
   const replyTo = replyToFrom(fields);
   if (replyTo !== '') {
-    head.push(`Reply-To: ${replyTo}`);
+    extra.push(`Reply-To: ${replyTo}`);
   }
-  return head.join('\r\n') + '\r\n\r\n' + wrap(Buffer.from(body, 'utf8').toString('base64')) + '\r\n';
+  const subject = [site.subjectPrefix, subjectText].filter((part) => part !== '').join(' ');
+  return compose({ smtp, to: site.recipient, subject, lines, extra, now });
+}
+
+const LIST_EVENTS = {
+  'list.subscribed': 'New subscriber',
+  'list.confirmed': 'Subscription confirmed',
+  'list.resubscribed': 'Subscribed again',
+  'list.pending': 'Waiting for confirmation',
+  'list.unsubscribed': 'Unsubscribed',
+  'list.bounced': 'Address bounced',
+  'list.complained': 'Marked as spam',
+  'list.removed': 'Removed from the list',
+};
+
+// A list event of Notifuse for NOTIFUSE_NOTIFY_TO. The subscriber's address stays in the
+// body, like every other value that came from outside.
+export function buildNotice({ smtp, to, event, now = new Date() }) {
+  const value = (raw) => String(raw ?? '').replace(CONTROL, ' ').trim().slice(0, MAX_SUBJECT);
+  const data = event.data;
+  const list = value(data.list_name) || value(data.list_id);
+  const title = LIST_EVENTS[event.type] ?? value(event.type);
+  const previous = value(data.previous_status);
+  const lines = [
+    `Address: ${value(data.email)}`,
+    `List: ${list}${value(data.list_id) !== list ? ` (${value(data.list_id)})` : ''}`,
+    `Status: ${value(data.status)}${previous !== '' ? ` (was ${previous})` : ''}`,
+    '',
+    '--',
+    `Event: ${value(event.type)}`,
+    `Workspace: ${value(event.workspace_id)}`,
+    `Delivery: ${value(event.id)}`,
+    `Sent: ${value(event.timestamp)}`,
+  ];
+  return compose({ smtp, to, subject: list === '' ? title : `${title}: ${list}`, lines, extra: [], now });
 }

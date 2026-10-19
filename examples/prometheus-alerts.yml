@@ -16,6 +16,13 @@ groups:
         annotations:
           summary: "Newsletter sign-ups for {{ $labels.site }} are not accepted"
 
+      - alert: AltchaNotifuseWebhookFailing
+        expr: increase(altcha_notifuse_webhooks_total{outcome=~"refused|failed"}[30m]) > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: "Notifuse webhook deliveries are {{ $labels.outcome }} - wrong secret, clock or mail server"
+
       - alert: AltchaNoMailForDays
         expr: time() - altcha_last_mail_sent_timestamp_seconds > 7 * 86400
         labels:

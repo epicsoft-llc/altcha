@@ -3,7 +3,8 @@
 Guidance for coding agents working in this repository. User documentation lives in [`README.md`](README.md).
 
 A Docker image: a Node.js service that issues and verifies ALTCHA challenges for many sites, serves the widget,
-mails verified form submissions, passes newsletter sign-ups on to Notifuse, and has an admin web UI on a second port.
+mails verified form submissions, passes newsletter sign-ups on to Notifuse, mails the list events its webhook reports,
+and has an admin web UI on a second port.
 
 ## Coordinates
 
@@ -47,12 +48,13 @@ src/
 ├── config.js       environment variables, <NAME>_FILE secrets, validation - fails the start with a clear message
 ├── public.js       public port: /widget.js, /widget.i18n.js, /challenge, /verify, /submit, /subscribe
 ├── admin.js        admin port: UI, /api/*, /metrics, /healthz, CSRF header
+├── notifuse.js     /notifuse/webhook on the admin port: Standard Webhooks signature, replay guard, list events by mail
 ├── auth.js         sign-in on the admin port: proxy header, Basic auth, API token, lockout after failures
 ├── altcha.js       issue and check challenges (altcha-lib, deterministic mode)
 ├── store.js        ALL database access (node:sqlite) - sites, origins, spent challenges, hourly statistics, migrations
 ├── sites.js        validation of a site from the API
 ├── smtp.js         SMTP client (STARTTLS / TLS / plain, AUTH PLAIN / LOGIN)
-├── mail.js         builds the message; withoutAddresses() for error texts on their way to the log
+├── mail.js         builds the messages (form, list event); withoutAddresses() for error texts on their way to the log
 ├── ratelimit.js    sliding window in memory
 ├── stats.js        every event goes here: Prometheus registry + buffered hourly totals in the database, history for the UI
 ├── metrics.js      counter, gauge, histogram and the text exposition format - no client library
@@ -60,7 +62,7 @@ src/
 └── healthcheck.js  container HEALTHCHECK
 ui/                 admin UI: index.html (icon sprite), app.js, chart.js (SVG line chart), app.css - no framework, no build step
 test/               node:test; helpers.js starts the service, an SMTP sink and a newsletter sink in-process
-docs/               reference too long for the README: api.md (endpoints, refusal reasons), metrics.md
+docs/               reference too long for the README: api.md (endpoints, refusal reasons), metrics.md, notifuse-webhook.md
 examples/           prometheus-alerts.yml
 ```
 
@@ -88,8 +90,13 @@ examples/           prometheus-alerts.yml
   open redirect.
 - **Changing admin requests need `X-Altcha-Admin: 1`** - the CSRF protection for Basic auth and proxy cookies; the admin
   port never answers CORS preflights. Only API-token requests are exempt: a browser never sends a bearer token itself.
+  The webhook needs no header either - it is not reached through the sign-in, a forged request lacks the signature.
 - **`/healthz` stays unauthenticated**, everything else on the admin port goes through `auth.js` when a sign-in is
-  configured.
+  configured - except `/notifuse/webhook`, which exists only with `NOTIFUSE_WEBHOOK_SECRET`. Its signature is the sign-in:
+  checked before anything else, then the timestamp (five minutes), then the delivery id (mailed once). The subscriber's
+  address goes into the mail body only, never into a header or the log.
+- **The webhook never answers `410`** - Notifuse switches the webhook off at once. A `2xx` means the event was mailed or
+  deliberately dropped; anything else makes Notifuse try again, so a failed mail must not answer `2xx`.
 - **The proxy header is believed only from `ADMIN_TRUSTED_PROXIES`.** Never read it from any other address, and never
   make the trusted list optional when the header is set - the config refuses to start without it.
 - **The lockout is checked before the credentials.** During a lockout nothing is compared, so a correct guess looks

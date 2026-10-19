@@ -113,6 +113,7 @@ export class Stats {
     this.smtpTime = registry.register(new Histogram('altcha_smtp_seconds', 'Time of a mail server conversation.', ['outcome'], [0.1, 0.25, 0.5, 1, 2.5, 5, 10, 20, 30]));
     this.internalErrors = registry.register(new Counter('altcha_internal_errors_total', 'Unexpected errors, by area.', ['area']));
     this.authFailures = registry.register(new Counter('altcha_admin_auth_refused_total', 'Admin requests refused by the sign-in, by reason.', ['reason']));
+    this.notifuseWebhooks = registry.register(new Counter('altcha_notifuse_webhooks_total', 'Deliveries of the Notifuse webhook, by outcome.', ['outcome']));
 
     this.#timer = setInterval(() => this.flush(), FLUSH_MS);
     this.#timer.unref();
@@ -178,6 +179,10 @@ export class Stats {
 
   authFailure(reason) {
     this.authFailures.inc({ reason });
+  }
+
+  notifuseWebhook(outcome) {
+    this.notifuseWebhooks.inc({ outcome });
   }
 
   flush() {

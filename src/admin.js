@@ -1,9 +1,10 @@
-// The admin port: web UI, site API, metrics and health check. It is meant to stay off
-// the internet; the sign-in (auth.js) is the second layer, not the only one.
+// The admin port: web UI, site API, metrics, health check and the Notifuse webhook. It is
+// meant to stay off the internet; the sign-in (auth.js) is the second layer, not the only one.
 
 import { createAuth, FAILURE_LIMIT, FAILURE_WINDOW_SECONDS } from './auth.js';
 import { BodyError, mediaType, readBody, sendJson, sendText } from './http.js';
 import { buildMessage, withoutAddresses } from './mail.js';
+import { createNotifuseWebhook, WEBHOOK_PATH } from './notifuse.js';
 import { ValidationError, validateSite } from './sites.js';
 import { emptyTotals, RANGES } from './stats.js';
 
@@ -32,6 +33,7 @@ const REFUSALS = {
 
 export function createAdminHandler({ config, store, stats, mailer, assets, log }) {
   const { authenticate } = createAuth(config.admin);
+  const webhook = config.notifuse === null ? null : createNotifuseWebhook({ config, mailer, stats, log });
 
   function methods() {
     const admin = config.admin;
@@ -230,6 +232,12 @@ export function createAdminHandler({ config, store, stats, mailer, assets, log }
         log.error(`health check: ${e.message}`);
       }
       sendText(res, healthy ? 200 : 503, healthy ? 'ok\n' : 'database unavailable\n');
+      return;
+    }
+
+    // its signature is the sign-in - without the webhook configured the path does not exist
+    if (path === WEBHOOK_PATH && webhook !== null) {
+      await webhook(req, res);
       return;
     }
 
