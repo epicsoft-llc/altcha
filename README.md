@@ -76,7 +76,7 @@ A request from a browser is mapped to a site by its `Origin` header (or `Referer
 ```yaml
 services:
   altcha:
-    image: epicsoft/altcha:0.2.1
+    image: epicsoft/altcha:0.3.0
     restart: unless-stopped
     environment:
       PUBLIC_URL: https://altcha.example.com
@@ -212,7 +212,7 @@ Request formats - no `multipart/form-data`, so no file uploads - and the reasons
 
 ## Admin port
 
-The admin port (`ADMIN_PORT`, default `8081`) serves the web UI, the site API, `/metrics` and `/healthz`. **Do not publish it on a public address.** Bind it to `127.0.0.1`, a VPN or an internal network; the sign-in is the second layer - the UI warns while there is none.
+The admin port (`ADMIN_PORT`, default `8081`) serves the web UI, the site API, `/metrics`, `/healthz` and the [Notifuse webhook](https://gitlab.com/epicsoft-networks/altcha/-/blob/main/docs/notifuse-webhook.md). **Do not publish it on a public address.** Bind it to `127.0.0.1`, a VPN or an internal network; the sign-in is the second layer - the UI warns while there is none.
 
 ### Signing in
 
@@ -264,7 +264,7 @@ A new version brings its database changes along and applies them on start, each 
 | Database | the sites; for every spent challenge its random nonce and expiry — no address, no form content | sites until deleted, nonces until the challenge expires |
 | Memory | client addresses of the rate limits, counters | addresses for about an hour (the window plus a ten-minute cleanup), counters until the process ends |
 | Mail | the submitted form fields, sent to the site's recipient | not stored by the service |
-| Newsletter | address, name and language, sent to the site's Notifuse list | not stored by the service |
+| Newsletter | address, name and language, sent to the site's Notifuse list; list events, mailed to `NOTIFUSE_NOTIFY_TO` | not stored by the service |
 | Log | refused requests with reason and site, refused admin sign-ins with reason (and the user name a proxy passed), changes in the admin UI with the user, mail server and newsletter errors | as long as the container log is kept |
 
 The service never writes a form field or a visitor's address to the database or to the log. What it sends on is the mail itself or the sign-up — the fields the form has, so a form should only ask for what the recipient needs.
@@ -323,11 +323,13 @@ The mail goes from `SMTP_FROM` to the site's recipient. The recipient comes from
 - `SMTP_FROM_NAME` display name of the sender (default: *empty*)
 - `SMTP_HELO` name in `EHLO` (default: `altcha`)
 - `SMTP_TIMEOUT` seconds per mail server conversation step (default: `20`)
+- `NOTIFUSE_WEBHOOK_SECRET` `whsec_…` secret of the Notifuse webhook, one per workspace (default: *empty*)
+- `NOTIFUSE_NOTIFY_TO` gets one mail per list event; needs the secret and SMTP (default: *empty*)
 - `TZ` time zone of the log (default: `UTC`)
 
 ## Secrets from files
 
-`HMAC_SECRET_FILE`, `ADMIN_PASSWORD_FILE`, `ADMIN_API_TOKEN_FILE` and `SMTP_PASSWORD_FILE` read the value from a file instead, for [Docker secrets](https://docs.docker.com/engine/swarm/secrets/), Kubernetes secret mounts and comparable mechanisms. A trailing newline is stripped. Setting a variable and its `_FILE` counterpart at the same time is an error, as is a missing or empty file — the service refuses to start and names the variable.
+`HMAC_SECRET_FILE`, `ADMIN_PASSWORD_FILE`, `ADMIN_API_TOKEN_FILE`, `SMTP_PASSWORD_FILE` and `NOTIFUSE_WEBHOOK_SECRET_FILE` read the value from a file instead, for [Docker secrets](https://docs.docker.com/engine/swarm/secrets/), Kubernetes secret mounts and comparable mechanisms. A trailing newline is stripped. Setting a variable and its `_FILE` counterpart at the same time is an error, as is a missing or empty file — the service refuses to start and names the variable.
 
 ## Metrics
 
@@ -341,8 +343,8 @@ Released through a git tag `X.Y.Z`, which publishes `X.Y.Z`, `X.Y`, `X` and move
 
 | Tag | Content |
 |---|---|
-| `0.2.1` | exactly this build - **use this in production** |
-| `0.2` | latest patch of `0.2` |
+| `0.3.0` | exactly this build - **use this in production** |
+| `0.3` | latest patch of `0.3` |
 | `latest` | newest release of any version - **can change the major version without warning** |
 | `develop` | current state of the `develop` branch, not for production |
 

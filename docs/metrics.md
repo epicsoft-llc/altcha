@@ -27,6 +27,7 @@ Part of the [ALTCHA service](../README.md).
 | `altcha_smtp_configured`, `altcha_admin_auth_enabled` | gauge | | configuration at a glance |
 | `altcha_internal_errors_total` | counter | `area` | unexpected errors — should stay at zero |
 | `altcha_admin_auth_refused_total` | counter | `reason` | refused sign-ins on the admin port - `invalid_credentials`, `invalid_token` and `too_many_failures` are worth an alert |
+| `altcha_notifuse_webhooks_total` | counter | `outcome` (`mailed`, `ignored`, `duplicate`, `refused`, `failed`) | what became of the deliveries of the Notifuse webhook - `refused` usually means a wrong secret or clock, `failed` the mail server |
 | `altcha_build_info` | gauge | `version`, `widget`, `node` | |
 | `process_start_time_seconds`, `process_resident_memory_bytes`, `process_cpu_seconds_total`, `nodejs_heap_used_bytes` | gauge | | the process |
 | `nodejs_eventloop_lag_seconds` | gauge | `quantile` (`0.5`, `0.99`, `1`) | event loop delay since the last scrape |

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { buildMessage, encodeHeader } from '../src/mail.js';
+import { buildMessage, buildNotice, encodeHeader } from '../src/mail.js';
 import { ValidationError, normalizeOrigin, validateSite } from '../src/sites.js';
 
 const smtp = { from: 'form@example.com', fromName: '' };
@@ -42,6 +42,18 @@ test('the body carries every field and the site', () => {
   assert.match(text, /name: Jürgen/);
   assert.match(text, /line one\r\nline two/);
   assert.match(text, /Site: example/);
+});
+
+test('a list event names the list in the subject and keeps the address in the body', () => {
+  const data = { email: 'reader@example.org', list_id: 'weekly', list_name: 'Weekly\r\nBcc: victim@example.org', status: 'active', previous_status: null };
+  const message = buildNotice({ smtp, to: 'news@example.com', event: { id: 'msg1', type: 'list.subscribed', workspace_id: 'ws1', data } });
+  assert.equal(subject(message), 'New subscriber: Weekly  Bcc: victim@example.org');
+  assert.match(headers(message), /^To: news@example\.com$/m);
+  assert.doesNotMatch(headers(message), /reader@example\.org|^Bcc:/m);
+  assert.match(body(message), /Address: reader@example\.org\r\n/);
+  assert.match(body(message), /Status: active\r\n/);
+  const unnamed = buildNotice({ smtp, to: 'news@example.com', event: { type: 'list.later', data: { list_id: 'weekly' } } });
+  assert.equal(subject(unnamed), 'list.later: weekly');
 });
 
 test('long subjects become several encoded words within the limit', () => {

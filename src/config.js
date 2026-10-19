@@ -187,6 +187,32 @@ function smtp(env) {
   };
 }
 
+// The webhook of Notifuse: its signing secrets in the whsec_ form Notifuse shows once - one
+// per workspace, separated by spaces or commas - and the address that gets the mails.
+function notifuse(env, smtpSettings) {
+  const signingSecret = secret(env, 'NOTIFUSE_WEBHOOK_SECRET');
+  const to = text(env, 'NOTIFUSE_NOTIFY_TO');
+  if ((signingSecret === '') !== (to === '')) {
+    throw new ConfigError('NOTIFUSE_WEBHOOK_SECRET and NOTIFUSE_NOTIFY_TO have to be set together');
+  }
+  if (signingSecret === '') {
+    return null;
+  }
+  if (smtpSettings === null) {
+    throw new ConfigError('NOTIFUSE_NOTIFY_TO needs SMTP_HOST - the events go out by mail');
+  }
+  if (!MAIL_ADDRESS.test(to)) {
+    throw new ConfigError(`NOTIFUSE_NOTIFY_TO must be a plain mail address, got '${to}'`);
+  }
+  const entries = signingSecret.split(/[\s,]+/).filter((entry) => entry !== '');
+  const keys = entries.map((entry) => Buffer.from(entry.slice(6), 'base64'));
+  const wellFormed = (entry, i) => /^whsec_[A-Za-z0-9+/]+={0,2}$/.test(entry) && (entry.length - 6) % 4 === 0 && keys[i].length >= 24;
+  if (keys.length === 0 || !entries.every(wellFormed)) {
+    throw new ConfigError('NOTIFUSE_WEBHOOK_SECRET must hold the whsec_... secrets Notifuse shows for its webhooks');
+  }
+  return { keys, to };
+}
+
 export function loadConfig(env = process.env) {
   const hmacSecret = secret(env, 'HMAC_SECRET');
   if (hmacSecret.length < 32) {
@@ -199,6 +225,7 @@ export function loadConfig(env = process.env) {
     throw new ConfigError('ALTCHA_COUNTER_MAX must not be smaller than ALTCHA_COUNTER_MIN');
   }
 
+  const smtpSettings = smtp(env);
   return Object.freeze({
     buildTag: text(env, 'IMAGE_TAG', 'local'),
     port: integer(env, 'PORT', 8080, 0, 65535),
@@ -223,6 +250,7 @@ export function loadConfig(env = process.env) {
       expiresSeconds: integer(env, 'ALTCHA_EXPIRES', 600, 10, 86400),
     },
     admin: admin(env),
-    smtp: smtp(env),
+    smtp: smtpSettings,
+    notifuse: notifuse(env, smtpSettings),
   });
 }

@@ -13,6 +13,19 @@ the versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 **A release is a git tag `X.Y.Z`** that matches `version` in `package.json`. CI builds `X.Y.Z`, `X.Y`, `X`
 from it, moves `latest` and creates the GitHub release from the entry below.
 
+## [0.3.0] - 2026-10-19
+
+### Added
+
+- `POST /notifuse/webhook` on the admin port takes the webhook of Notifuse and mails every list event to
+  `NOTIFUSE_NOTIFY_TO` - each confirmed sign-up, for example. The route needs no sign-in: every delivery is checked
+  against its Standard Webhooks signature (`NOTIFUSE_WEBHOOK_SECRET`, one secret per workspace), its timestamp may be
+  five minutes off at most, and a delivery id is mailed once. Events other than `list.*` are acknowledged and dropped. Setup in
+  `docs/notifuse-webhook.md`
+- Metric `altcha_notifuse_webhooks_total` by outcome, the example alert `AltchaNotifuseWebhookFailing`
+
+A setup without the two new variables works as before.
+
 ## [0.2.1] - 2026-10-19
 
 ### Security

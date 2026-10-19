@@ -33,7 +33,7 @@ ENV ADMIN_PORT="8081"
 ENV DATA_DIR="/data"
 ENV PUBLIC_URL=""
 ENV TRUST_PROXY="0"
-# HMAC_SECRET, ADMIN_PASSWORD, ADMIN_API_TOKEN and SMTP_PASSWORD are deliberately not declared here:
+# HMAC_SECRET, ADMIN_PASSWORD, ADMIN_API_TOKEN, SMTP_PASSWORD and NOTIFUSE_WEBHOOK_SECRET are deliberately not declared here:
 # a secret does not belong into an image layer, not even as an empty default.
 ENV HMAC_SECRET_FILE=""
 ENV ADMIN_USERNAME=""
@@ -63,6 +63,8 @@ ENV SMTP_FROM=""
 ENV SMTP_FROM_NAME=""
 ENV SMTP_HELO="altcha"
 ENV SMTP_TIMEOUT="20"
+ENV NOTIFUSE_WEBHOOK_SECRET_FILE=""
+ENV NOTIFUSE_NOTIFY_TO=""
 
 # The packages of the base image lag behind the Alpine repository - the upgrade brings their security fixes.
 # The service needs node and nothing else at runtime. npm, npx, yarn and corepack
