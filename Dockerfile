@@ -64,9 +64,11 @@ ENV SMTP_FROM_NAME=""
 ENV SMTP_HELO="altcha"
 ENV SMTP_TIMEOUT="20"
 
+# The packages of the base image lag behind the Alpine repository - the upgrade brings their security fixes.
 # The service needs node and nothing else at runtime. npm, npx, yarn and corepack
 # only add packages for an image scanner to report.
-RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
+RUN apk --no-cache upgrade \
+ && rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
            /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
            /usr/local/bin/yarn /usr/local/bin/yarnpkg /opt/yarn-* \
  && mkdir -p /data \

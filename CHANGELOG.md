@@ -13,6 +13,20 @@ the versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 **A release is a git tag `X.Y.Z`** that matches `version` in `package.json`. CI builds `X.Y.Z`, `X.Y`, `X`
 from it, moves `latest` and creates the GitHub release from the entry below.
 
+## [0.2.1] - 2026-10-19
+
+### Security
+
+- The packages of the base image are upgraded when the image is built (`apk upgrade`), so their security fixes do not
+  wait for the next `node:24-alpine`. `0.2.0` still holds OpenSSL `3.5.8` and `zlib-1.3.2-r0`; this release has
+  OpenSSL `3.5.9` and `zlib-1.3.2-r1`, both security updates of Alpine, and Node.js `24.22.0`
+
+### Changed
+
+- ALTCHA widget `3.4.1` (was `3.3.0`): the widget can be tied to a `<form>` it is not nested in with the `form`
+  attribute, plus fixes; no change to the challenges
+- README: link to the changelog in the header, the license section names the third-party software in the image
+
 ## [0.2.0] - 2026-10-13
 
 ### Added

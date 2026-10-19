@@ -9,6 +9,7 @@ A self-hosted service that protects web forms with [ALTCHA](https://altcha.org) 
 * Repository: https://gitlab.com/epicsoft-networks/altcha, mirrored to [GitHub](https://github.com/epicsoft-llc/altcha) — issues are welcome on both; code changes only as merge requests on GitLab, the mirror cannot take pull requests
 * Container registry: https://gitlab.com/epicsoft-networks/altcha/container_registry
 * Docker Hub: https://hub.docker.com/r/epicsoft/altcha
+* Changelog: https://gitlab.com/epicsoft-networks/altcha/-/blob/main/CHANGELOG.md
 * License: MIT
 
 | | |
@@ -75,7 +76,7 @@ A request from a browser is mapped to a site by its `Origin` header (or `Referer
 ```yaml
 services:
   altcha:
-    image: epicsoft/altcha:0.2.0
+    image: epicsoft/altcha:0.2.1
     restart: unless-stopped
     environment:
       PUBLIC_URL: https://altcha.example.com
@@ -207,9 +208,7 @@ A refused solution is answered with `403` and `{"ok": false, "error": "<reason>"
 | `POST /submit` | check a solution and mail the form to the site's recipient |
 | `POST /subscribe` | check a solution and pass the address on to the site's newsletter list |
 
-Bodies are accepted as `application/x-www-form-urlencoded` or `application/json` (flat, no nested objects), up to `MAX_BODY_BYTES`. `multipart/form-data` — and with it file uploads — is refused.
-
-The reasons a request can be refused - the `error` of the answer and the `reason` of the metrics - are listed in the [API reference](https://gitlab.com/epicsoft-networks/altcha/-/blob/main/docs/api.md).
+Request formats - no `multipart/form-data`, so no file uploads - and the reasons a request can be refused are in the [API reference](https://gitlab.com/epicsoft-networks/altcha/-/blob/main/docs/api.md).
 
 ## Admin port
 
@@ -332,17 +331,17 @@ The mail goes from `SMTP_FROM` to the site's recipient. The recipient comes from
 
 ## Metrics
 
-`GET /metrics` on the admin port, Prometheus text format, behind the sign-in. It counts per site and per refusal reason, measures requests and latency per endpoint, the solve time in the browser and the age of a challenge when it is spent (the numbers to tune `ALTCHA_COST` and `ALTCHA_EXPIRES` with), mail delivery, newsletter sign-ups, refused admin sign-ins, the database, the process and the event loop.
+`GET /metrics` on the admin port, Prometheus text format, behind the sign-in - per site and refusal reason, including the solve time and challenge age to tune `ALTCHA_COST` and `ALTCHA_EXPIRES` with.
 
 Every metric with what it answers: [docs/metrics.md](https://gitlab.com/epicsoft-networks/altcha/-/blob/main/docs/metrics.md). Alerting rules to start from: [examples/prometheus-alerts.yml](https://gitlab.com/epicsoft-networks/altcha/-/blob/main/examples/prometheus-alerts.yml).
 
 ## Versions
 
-Released through a git tag `X.Y.Z`, which publishes `X.Y.Z`, `X.Y`, `X` and moves `latest`. Changes are listed in the [changelog](https://gitlab.com/epicsoft-networks/altcha/-/blob/main/CHANGELOG.md).
+Released through a git tag `X.Y.Z`, which publishes `X.Y.Z`, `X.Y`, `X` and moves `latest`.
 
 | Tag | Content |
 |---|---|
-| `0.2.0` | exactly this build - **use this in production** |
+| `0.2.1` | exactly this build - **use this in production** |
 | `0.2` | latest patch of `0.2` |
 | `latest` | newest release of any version - **can change the major version without warning** |
 | `develop` | current state of the `develop` branch, not for production |
@@ -366,6 +365,6 @@ Issues are welcome on [GitLab](https://gitlab.com/epicsoft-networks/altcha/-/iss
 
 ## License
 
-MIT, see [LICENSE](https://gitlab.com/epicsoft-networks/altcha/-/blob/main/LICENSE).
+[MIT](https://gitlab.com/epicsoft-networks/altcha/-/blob/main/LICENSE) — Copyright (c) 2026 epicsoft LLC / Alexander Schwarz
 
-Please note that the MIT license only applies to the files created by epicsoft LLC. Other software may be licensed under other licenses.
+The MIT license applies only to files created by epicsoft LLC. Third-party software in the image — Node.js, the `altcha` widget, `altcha-lib`, the Alpine packages and the official `node` image — remains under its own licenses.

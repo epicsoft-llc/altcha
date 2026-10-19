@@ -1,6 +1,6 @@
 {
   "name": "altcha-service",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Self-hosted ALTCHA challenge, verification and form mail service with an admin web UI",
   "license": "MIT",
@@ -14,7 +14,7 @@
     "test": "node --test \"test/*.test.js\""
   },
   "dependencies": {
-    "altcha": "3.3.0",
+    "altcha": "3.4.1",
     "altcha-lib": "2.6.0"
   }
 }
