@@ -94,7 +94,8 @@ const LIST_EVENTS = {
 };
 
 // A list event of Notifuse for NOTIFUSE_NOTIFY_TO. The subscriber's address stays in the
-// body, like every other value that came from outside.
+// body, like every other value that came from outside. X-Altcha-Event lets a mail filter
+// sort the notices - only a known event type, never a value as Notifuse sent it.
 export function buildNotice({ smtp, to, event, now = new Date() }) {
   const value = (raw) => String(raw ?? '').replace(CONTROL, ' ').trim().slice(0, MAX_SUBJECT);
   const data = event.data;
@@ -112,5 +113,6 @@ export function buildNotice({ smtp, to, event, now = new Date() }) {
     `Delivery: ${value(event.id)}`,
     `Sent: ${value(event.timestamp)}`,
   ];
-  return compose({ smtp, to, subject: list === '' ? title : `${title}: ${list}`, lines, extra: [], now });
+  const extra = Object.hasOwn(LIST_EVENTS, event.type) ? [`X-Altcha-Event: ${event.type}`] : [];
+  return compose({ smtp, to, subject: list === '' ? title : `${title}: ${list}`, lines, extra, now });
 }
