@@ -26,6 +26,8 @@ opt-in.
 
 The subject says what happened and on which list (`Subscription confirmed: Newsletter`). The body has the address, the
 list, the status before and after, and the event, workspace and delivery id. The address is never put into a header.
+The header `X-Altcha-Event` names the event type (`X-Altcha-Event: list.confirmed`), for a mail filter or a program
+that reads the notices - only the types in the table below, an unknown type goes out without it.
 
 | Event | Subject |
 |---|---|

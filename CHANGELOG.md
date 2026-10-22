@@ -13,6 +13,13 @@ the versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 **A release is a git tag `X.Y.Z`** that matches `version` in `package.json`. CI builds `X.Y.Z`, `X.Y`, `X`
 from it, moves `latest` and creates the GitHub release from the entry below.
 
+## [0.4.0] - 2026-10-22
+
+### Added
+
+- The mail of a Notifuse list event carries the header `X-Altcha-Event` with its type (`list.confirmed`, …), so a mail
+  filter or a program can sort the notices without reading the body. Unknown types go out without it
+
 ## [0.3.0] - 2026-10-19
 
 ### Added

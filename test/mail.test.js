@@ -56,6 +56,15 @@ test('a list event names the list in the subject and keeps the address in the bo
   assert.equal(subject(unnamed), 'list.later: weekly');
 });
 
+test('a known list event is named in X-Altcha-Event, any other type is not', () => {
+  const data = { email: 'reader@example.org', list_id: 'weekly' };
+  const known = buildNotice({ smtp, to: 'news@example.com', event: { type: 'list.confirmed', data } });
+  assert.match(headers(known), /^X-Altcha-Event: list\.confirmed$/m);
+  for (const type of ['list.later', 'list.confirmed\r\nBcc: victim@example.org', 'constructor', undefined]) {
+    assert.doesNotMatch(headers(buildNotice({ smtp, to: 'news@example.com', event: { type, data } })), /X-Altcha-Event|^Bcc:/m, String(type));
+  }
+});
+
 test('long subjects become several encoded words within the limit', () => {
   const encoded = encodeHeader('ä'.repeat(100));
   for (const word of encoded.split('\r\n ')) {

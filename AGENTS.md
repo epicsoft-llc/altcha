@@ -94,7 +94,8 @@ examples/           prometheus-alerts.yml
 - **`/healthz` stays unauthenticated**, everything else on the admin port goes through `auth.js` when a sign-in is
   configured - except `/notifuse/webhook`, which exists only with `NOTIFUSE_WEBHOOK_SECRET`. Its signature is the sign-in:
   checked before anything else, then the timestamp (five minutes), then the delivery id (mailed once). The subscriber's
-  address goes into the mail body only, never into a header or the log.
+  address goes into the mail body only, never into a header or the log. The only header of the event is
+  `X-Altcha-Event`, and only for a type of `LIST_EVENTS` - never a value as Notifuse sent it.
 - **The webhook never answers `410`** - Notifuse switches the webhook off at once. A `2xx` means the event was mailed or
   deliberately dropped; anything else makes Notifuse try again, so a failed mail must not answer `2xx`.
 - **The proxy header is believed only from `ADMIN_TRUSTED_PROXIES`.** Never read it from any other address, and never
