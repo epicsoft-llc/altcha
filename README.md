@@ -76,7 +76,7 @@ A request from a browser is mapped to a site by its `Origin` header (or `Referer
 ```yaml
 services:
   altcha:
-    image: epicsoft/altcha:0.4.0
+    image: epicsoft/altcha:0.5.0
     restart: unless-stopped
     environment:
       PUBLIC_URL: https://altcha.example.com
@@ -148,25 +148,7 @@ Open the admin UI on port `8081`, create a site with its origins (for example `h
 
 ### A newsletter sign-up
 
-`/subscribe` passes a verified sign-up on to a list in Notifuse. Its address, workspace and lists are set per site - never taken from the request, so nobody can be put on another list.
-
-```html
-<form action="https://altcha.example.com/subscribe" method="post">
-  <input name="email" type="email" required>
-  <input name="name">
-  <input name="language" type="hidden" value="en">
-  <input name="website" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp">
-  <altcha-widget challenge="https://altcha.example.com/challenge"></altcha-widget>
-  <button type="submit">Subscribe</button>
-</form>
-```
-
-- Only `email`, `name` (as the full name) and `language` reach Notifuse; every other field is dropped. An invalid address is refused as `email_invalid` before the solution is spent, so the visitor can correct it without solving again.
-- The lists have to be public in Notifuse. With double opt-in on the list, Notifuse mails the confirmation link itself.
-- Lists per language: a sign-up whose `language` has lists of its own at the site goes there instead (`de-at` falls back to `de`, `es-419` to `es`).
-- The service posts to the public `/subscribe` of Notifuse, no API key - in the same Docker network for example `http://notifuse:8080`. Notifuse sees the address of this service, not the visitor's.
-- Workspace and list ids never appear in the page. Notifuse's own `/subscribe` stays reachable - its confirmation page needs it - so keep its rate limits.
-- Rate limits, redirect pages and honeypot work as for `/submit`; a site can have both.
+`/subscribe` passes a verified sign-up on to a list in Notifuse. The form, its fields and the setup are in [docs/newsletter.md](https://gitlab.com/epicsoft-networks/altcha/-/blob/main/docs/newsletter.md).
 
 ### Pages with a Content Security Policy
 
@@ -201,6 +183,7 @@ A refused solution is answered with `403` and `{"ok": false, "error": "<reason>"
 
 | Route | Purpose |
 |---|---|
+| `GET /` | a page about the service and its source; who runs it comes from the `PAGE_*` variables |
 | `GET /widget.js` | the ALTCHA widget (ES module, English) |
 | `GET /widget.i18n.js` | the widget with all translations |
 | `GET /challenge` | a new challenge for the site of the `Origin` |
@@ -325,6 +308,10 @@ The mail goes from `SMTP_FROM` to the site's recipient. The recipient comes from
 - `SMTP_TIMEOUT` seconds per mail server conversation step (default: `20`)
 - `NOTIFUSE_WEBHOOK_SECRET` `whsec_…` secret of the Notifuse webhook, one per workspace (default: *empty*)
 - `NOTIFUSE_NOTIFY_TO` gets one mail per list event; needs the secret and SMTP (default: *empty*)
+- `PAGE_OPERATOR` name of whoever runs this instance, shown on the page at `/` (default: *empty*)
+- `PAGE_OPERATOR_URL` link for that name; needs `PAGE_OPERATOR` (default: *empty*)
+- `PAGE_LOGO` path to an `.svg`, `.png` or `.webp` logo of at most 64 kB, shown next to the name; needs `PAGE_OPERATOR` (default: *empty*)
+- `PAGE_IMPRINT_URL`, `PAGE_PRIVACY_URL` links to the operator's legal notice and privacy policy, shown on the page at `/` (default: *empty*)
 - `TZ` time zone of the log (default: `UTC`)
 
 ## Secrets from files
@@ -343,8 +330,8 @@ Released through a git tag `X.Y.Z`, which publishes `X.Y.Z`, `X.Y`, `X` and move
 
 | Tag | Content |
 |---|---|
-| `0.4.0` | exactly this build - **use this in production** |
-| `0.4` | latest patch of `0.4` |
+| `0.5.0` | exactly this build - **use this in production** |
+| `0.5` | latest patch of `0.5` |
 | `latest` | newest release of any version - **can change the major version without warning** |
 | `develop` | current state of the `develop` branch, not for production |
 

@@ -1,13 +1,23 @@
-// The public port: widget, challenge, verify, submit and subscribe. A browser request is mapped
-// to a site by its Origin (or Referer); CORS only lets the browser read the answer,
-// the protection is the check on this side.
+// The public port: a page about the service, widget, challenge, verify, submit and subscribe.
+// A browser request is mapped to a site by its Origin (or Referer); CORS only lets the browser
+// read the answer, the protection is the check on this side.
 
 import { BodyError, clientIp, mediaType, parseFields, rateKey, readBody, requestOrigin, sendJson } from './http.js';
 import { LANGUAGE_TAG, MAIL_ADDRESS } from './config.js';
+import { createInfoPage } from './info.js';
 import { buildMessage, withoutAddresses } from './mail.js';
 
 const SUBSCRIBE_TIMEOUT_MS = 10000;
 const CONTROL = /[\u0000-\u001f\u007f]/g;
+
+const WIDGET_HEADERS = {
+  'Content-Type': 'text/javascript; charset=utf-8',
+  'Cache-Control': 'public, max-age=86400',
+  // the widget is an ES module, which a browser fetches with CORS
+  'Access-Control-Allow-Origin': '*',
+  'Cross-Origin-Resource-Policy': 'cross-origin',
+  'X-Content-Type-Options': 'nosniff',
+};
 
 function cors(res, origin) {
   res.setHeader('Access-Control-Allow-Origin', origin);
@@ -32,6 +42,16 @@ function redirectTo(target, reason) {
 }
 
 export function createPublicHandler({ config, store, altcha, limiter, stats, mailer, widgets, log }) {
+  const page = createInfoPage(config.page);
+  const pageHeaders = {
+    'Content-Type': 'text/html; charset=utf-8',
+    'Cache-Control': 'public, max-age=3600',
+    'Content-Security-Policy': `default-src 'none'; style-src ${page.styleHash}; img-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`,
+    'X-Content-Type-Options': 'nosniff',
+    'Referrer-Policy': 'no-referrer',
+    'X-Frame-Options': 'DENY',
+  };
+
   // the key the rate limits count under - an IPv6 client by its /64
   function client(req) {
     return rateKey(clientIp(req, config.trustProxy));
@@ -60,23 +80,15 @@ export function createPublicHandler({ config, store, altcha, limiter, stats, mai
     sendJson(res, 200, body);
   }
 
-  function serveWidget(req, res, widget) {
-    const headers = {
-      'Content-Type': 'text/javascript; charset=utf-8',
-      'Cache-Control': 'public, max-age=86400',
-      ETag: widget.etag,
-      // the widget is an ES module, which a browser fetches with CORS
-      'Access-Control-Allow-Origin': '*',
-      'Cross-Origin-Resource-Policy': 'cross-origin',
-      'X-Content-Type-Options': 'nosniff',
-    };
-    if (req.headers['if-none-match'] === widget.etag) {
-      res.writeHead(304, headers);
+  function serveStatic(req, res, asset, headers) {
+    const all = { ...headers, ETag: asset.etag };
+    if (req.headers['if-none-match'] === asset.etag) {
+      res.writeHead(304, all);
       res.end();
       return;
     }
-    res.writeHead(200, headers);
-    res.end(req.method === 'HEAD' ? undefined : widget.body);
+    res.writeHead(200, all);
+    res.end(req.method === 'HEAD' ? undefined : asset.body);
   }
 
   // Verified, issued for an enabled site - the expected one, if the caller knows it -
@@ -283,7 +295,11 @@ export function createPublicHandler({ config, store, altcha, limiter, stats, mai
     const path = new URL(req.url, 'http://localhost').pathname;
 
     if ((req.method === 'GET' || req.method === 'HEAD') && widgets.has(path)) {
-      serveWidget(req, res, widgets.get(path));
+      serveStatic(req, res, widgets.get(path), WIDGET_HEADERS);
+      return;
+    }
+    if ((req.method === 'GET' || req.method === 'HEAD') && path === '/') {
+      serveStatic(req, res, page, pageHeaders);
       return;
     }
 

@@ -46,7 +46,8 @@ docker build -t altcha:dev .
 src/
 ├── server.js       entry point: config, two HTTP servers, shutdown; start() is what the tests call
 ├── config.js       environment variables, <NAME>_FILE secrets, validation - fails the start with a clear message
-├── public.js       public port: /widget.js, /widget.i18n.js, /challenge, /verify, /submit, /subscribe
+├── public.js       public port: /, /widget.js, /widget.i18n.js, /challenge, /verify, /submit, /subscribe
+├── info.js         the page on / of the public port: about the service, the operator from PAGE_*
 ├── admin.js        admin port: UI, /api/*, /metrics, /healthz, CSRF header
 ├── notifuse.js     /notifuse/webhook on the admin port: Standard Webhooks signature, replay guard, list events by mail
 ├── auth.js         sign-in on the admin port: proxy header, Basic auth, API token, lockout after failures
@@ -62,7 +63,7 @@ src/
 └── healthcheck.js  container HEALTHCHECK
 ui/                 admin UI: index.html (icon sprite), app.js, chart.js (SVG line chart), app.css - no framework, no build step
 test/               node:test; helpers.js starts the service, an SMTP sink and a newsletter sink in-process
-docs/               reference too long for the README: api.md (endpoints, refusal reasons), metrics.md, notifuse-webhook.md
+docs/               reference too long for the README: api.md (endpoints, refusal reasons), metrics.md, newsletter.md, notifuse-webhook.md
 examples/           prometheus-alerts.yml
 ```
 
@@ -108,6 +109,8 @@ examples/           prometheus-alerts.yml
   (`node.style.setProperty`, `node.style.width = …`), which the CSP allows. `setAttribute('style', …)` is silently
   blocked.
 - **Every file in `ui/` is served** under its name (types by extension in `server.js`); a new module needs nothing else.
+- **The page on `/` names no operator of its own.** Who runs an instance comes only from the `PAGE_*` variables, every
+  value goes through `escapeHtml`. It loads nothing: the CSP allows its inline style by hash and images as `data:` only.
 - **Database access only in `store.js`.** A schema change is a new entry at the end of `MIGRATIONS`, never an edit of
   an existing one. A database newer than the code refuses to start. Numbers bound to SQL arrive as `REAL` - `CAST` where
   integer arithmetic matters (see `statBuckets`).
