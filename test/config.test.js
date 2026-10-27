@@ -32,6 +32,19 @@ test('secrets come from a file, a trailing newline is dropped', () => {
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
+test('the page settings: links are web addresses, URL and logo need the operator name', () => {
+  assert.deepEqual(loadConfig(base).page, { operator: '', operatorUrl: '', logo: '', imprintUrl: '', privacyUrl: '' });
+  assert.throws(() => loadConfig({ ...base, PAGE_IMPRINT_URL: 'javascript:alert(1)' }), /PAGE_IMPRINT_URL must start with https/);
+  assert.throws(() => loadConfig({ ...base, PAGE_OPERATOR_URL: 'https://example.com' }), /need PAGE_OPERATOR/);
+  const dir = tempDir();
+  const logo = path.join(dir, 'logo.svg');
+  fs.writeFileSync(logo, '<svg xmlns="http://www.w3.org/2000/svg"/>');
+  assert.match(loadConfig({ ...base, PAGE_OPERATOR: 'Example Ltd', PAGE_LOGO: logo }).page.logo, /^data:image\/svg\+xml;base64,/);
+  assert.throws(() => loadConfig({ ...base, PAGE_OPERATOR: 'Example Ltd', PAGE_LOGO: path.join(dir, 'logo.gif') }), /\.svg, \.png or \.webp/);
+  assert.throws(() => loadConfig({ ...base, PAGE_OPERATOR: 'Example Ltd', PAGE_LOGO: path.join(dir, 'missing.png') }), /cannot be read/);
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
 test('admin credentials only together', () => {
   assert.throws(() => loadConfig({ ...base, ADMIN_USERNAME: 'admin' }), /together/);
   assert.throws(() => loadConfig({ ...base, ADMIN_PASSWORD: 'pw' }), /together/);

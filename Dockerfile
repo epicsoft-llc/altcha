@@ -65,6 +65,11 @@ ENV SMTP_HELO="altcha"
 ENV SMTP_TIMEOUT="20"
 ENV NOTIFUSE_WEBHOOK_SECRET_FILE=""
 ENV NOTIFUSE_NOTIFY_TO=""
+ENV PAGE_OPERATOR=""
+ENV PAGE_OPERATOR_URL=""
+ENV PAGE_LOGO=""
+ENV PAGE_IMPRINT_URL=""
+ENV PAGE_PRIVACY_URL=""
 
 # The packages of the base image lag behind the Alpine repository - the upgrade brings their security fixes.
 # The service needs node and nothing else at runtime. npm, npx, yarn and corepack

@@ -13,6 +13,21 @@ the versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 **A release is a git tag `X.Y.Z`** that matches `version` in `package.json`. CI builds `X.Y.Z`, `X.Y`, `X`
 from it, moves `latest` and creates the GitHub release from the entry below.
 
+## [0.5.0] - 2026-10-27
+
+### Added
+
+- `GET /` on the public port shows a page about the service - what it does, with links to the source on GitLab and
+  GitHub and to the image on Docker Hub - instead of the refusal `route_unknown`. It sets no cookies, loads nothing from
+  elsewhere and carries `noindex`
+- `PAGE_OPERATOR`, `PAGE_OPERATOR_URL` and `PAGE_LOGO` show on that page who runs the instance, `PAGE_IMPRINT_URL` and
+  `PAGE_PRIVACY_URL` link their legal notice and privacy policy. All optional; without them the page names no operator
+
+### Changed
+
+- The newsletter sign-up example moved from the README to [docs/newsletter.md](docs/newsletter.md) - the README is the
+  Docker Hub description, which takes at most 25,000 characters
+
 ## [0.4.0] - 2026-10-22
 
 ### Added

@@ -6,6 +6,7 @@ Part of the [ALTCHA service](../README.md). Both ports speak JSON.
 
 | Route | Purpose |
 |---|---|
+| `GET /` | an HTML page about the service: what it does, links to the source and the image, and - from the `PAGE_*` variables - who runs it with links to their legal notice and privacy policy. No cookies, nothing loaded from elsewhere |
 | `GET /widget.js` | the ALTCHA widget (ES module, English) |
 | `GET /widget.i18n.js` | the widget with all translations |
 | `GET /challenge` | a new challenge for the site of the `Origin` |

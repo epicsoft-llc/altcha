@@ -4,9 +4,12 @@
 
 import fs from 'node:fs';
 import net from 'node:net';
+import path from 'node:path';
 
 export const ALGORITHMS = ['PBKDF2/SHA-256', 'PBKDF2/SHA-384', 'PBKDF2/SHA-512', 'SHA-256', 'SHA-384', 'SHA-512'];
 const SMTP_SECURITY = ['starttls', 'tls', 'none'];
+const LOGO_TYPES = { '.svg': 'image/svg+xml', '.png': 'image/png', '.webp': 'image/webp' };
+const MAX_LOGO_BYTES = 65536;
 
 export const MAIL_ADDRESS = /^[^\s@<>,;:"()[\]\\]{1,64}@[A-Za-z0-9.-]{1,190}\.[A-Za-z]{2,24}$/;
 // a language tag in lower case, like de, de-at, es-419 or zh-hant - for the site settings and the form
@@ -72,8 +75,8 @@ function singleLine(name, value) {
   return value;
 }
 
-function publicUrl(env) {
-  const raw = text(env, 'PUBLIC_URL');
+function webUrl(env, name) {
+  const raw = text(env, name);
   if (raw === '') {
     return '';
   }
@@ -82,12 +85,51 @@ function publicUrl(env) {
     url = new URL(raw);
   }
   catch (e) {
-    throw new ConfigError(`PUBLIC_URL is not a valid URL: '${raw}'`);
+    throw new ConfigError(`${name} is not a valid URL: '${raw}'`);
   }
   if (url.protocol !== 'https:' && url.protocol !== 'http:') {
-    throw new ConfigError('PUBLIC_URL must start with https:// or http://');
+    throw new ConfigError(`${name} must start with https:// or http://`);
   }
-  return url.href.replace(/\/+$/, '');
+  return url.href;
+}
+
+function publicUrl(env) {
+  return webUrl(env, 'PUBLIC_URL').replace(/\/+$/, '');
+}
+
+// Who runs this instance, for the page on / of the public port - each part only shows when it is set.
+function page(env) {
+  const operator = singleLine('PAGE_OPERATOR', text(env, 'PAGE_OPERATOR'));
+  const operatorUrl = webUrl(env, 'PAGE_OPERATOR_URL');
+  const logoPath = text(env, 'PAGE_LOGO');
+  if (operator === '' && (operatorUrl !== '' || logoPath !== '')) {
+    throw new ConfigError('PAGE_OPERATOR_URL and PAGE_LOGO need PAGE_OPERATOR - the page shows them next to the name');
+  }
+  let logo = '';
+  if (logoPath !== '') {
+    const type = LOGO_TYPES[path.extname(logoPath).toLowerCase()];
+    if (type === undefined) {
+      throw new ConfigError(`PAGE_LOGO must be an .svg, .png or .webp file, got '${logoPath}'`);
+    }
+    let data;
+    try {
+      data = fs.readFileSync(logoPath);
+    }
+    catch (e) {
+      throw new ConfigError(`PAGE_LOGO cannot be read: ${logoPath}`);
+    }
+    if (data.length === 0 || data.length > MAX_LOGO_BYTES) {
+      throw new ConfigError(`PAGE_LOGO must not be empty or larger than ${MAX_LOGO_BYTES / 1024} kB: ${logoPath}`);
+    }
+    logo = `data:${type};base64,${data.toString('base64')}`;
+  }
+  return {
+    operator,
+    operatorUrl,
+    logo,
+    imprintUrl: webUrl(env, 'PAGE_IMPRINT_URL'),
+    privacyUrl: webUrl(env, 'PAGE_PRIVACY_URL'),
+  };
 }
 
 // IP addresses and CIDR ranges, separated by commas or spaces
@@ -252,5 +294,6 @@ export function loadConfig(env = process.env) {
     admin: admin(env),
     smtp: smtpSettings,
     notifuse: notifuse(env, smtpSettings),
+    page: page(env),
   });
 }

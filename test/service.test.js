@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import { after, before, describe, test } from 'node:test';
-import { createSite, fetchChallenge, solve, startNewsletterSink, startService, startSmtpSink } from './helpers.js';
+import { createSite, fetchChallenge, solve, startNewsletterSink, startService, startSmtpSink, tempDir } from './helpers.js';
 
 const ORIGIN = 'https://forms.example.com';
 const FOREIGN = 'https://elsewhere.example.org';
@@ -67,6 +70,49 @@ describe('public port', () => {
     assert.equal(response.status, 200);
     assert.equal(response.headers.get('access-control-allow-origin'), '*');
     assert.match(await response.text(), /customElements\.define/);
+  });
+
+  test('the root is a page about the service whose style the CSP allows', async () => {
+    const response = await fetch(`${service.base}/`);
+    assert.equal(response.status, 200);
+    assert.match(response.headers.get('content-type'), /^text\/html/);
+    const page = await response.text();
+    for (const href of ['https://gitlab.com/epicsoft-networks/altcha', 'https://github.com/epicsoft-llc/altcha', 'https://hub.docker.com/r/epicsoft/altcha']) {
+      assert.ok(page.includes(`href="${href}"`), href);
+    }
+    const style = page.match(/<style>([\s\S]*?)<\/style>/)[1];
+    const hash = crypto.createHash('sha256').update(style).digest('base64');
+    assert.ok(response.headers.get('content-security-policy').includes(`style-src 'sha256-${hash}'`));
+    const head = await fetch(`${service.base}/`, { method: 'HEAD' });
+    assert.equal(head.status, 200);
+    assert.equal(await head.text(), '');
+    assert.equal((await fetch(`${service.base}/`, { headers: { 'If-None-Match': response.headers.get('etag') } })).status, 304);
+    assert.equal((await fetch(`${service.base}/`, { method: 'POST' })).status, 404);
+    assert.ok(!page.includes('Operated by'));
+  });
+
+  test('the operator from PAGE_* shows on the page, escaped', async () => {
+    const dir = tempDir();
+    const logo = path.join(dir, 'logo.svg');
+    fs.writeFileSync(logo, '<svg xmlns="http://www.w3.org/2000/svg"/>');
+    const own = await startService({
+      PAGE_OPERATOR: 'Example & Sons <Ltd>',
+      PAGE_OPERATOR_URL: 'https://example.com/',
+      PAGE_LOGO: logo,
+      PAGE_IMPRINT_URL: 'https://example.com/legal-notice/',
+      PAGE_PRIVACY_URL: 'https://example.com/privacy/',
+    });
+    try {
+      const page = await (await fetch(`${own.base}/`)).text();
+      assert.ok(page.includes('Operated by <a href="https://example.com/">Example &amp; Sons &lt;Ltd&gt;</a>'));
+      assert.match(page, /<img src="data:image\/svg\+xml;base64,[A-Za-z0-9+/=]+" alt="">/);
+      assert.ok(page.includes('<a href="https://example.com/legal-notice/">Legal notice</a>'));
+      assert.ok(page.includes('<a href="https://example.com/privacy/">Privacy policy</a>'));
+    }
+    finally {
+      await own.close();
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   test('a challenge only for a known origin', async () => {
