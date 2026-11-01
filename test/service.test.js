@@ -72,6 +72,24 @@ describe('public port', () => {
     assert.match(await response.text(), /customElements\.define/);
   });
 
+  test('serves the widget without inline style, its style sheet and its languages', async () => {
+    const widget = await fetch(`${service.base}/widget.external.js`);
+    assert.equal(widget.status, 200);
+    assert.equal(widget.headers.get('access-control-allow-origin'), '*');
+    const script = await widget.text();
+    assert.match(script, /customElements\.define/);
+    assert.doesNotMatch(script, /createElement\(.style.\)/);
+    const css = await fetch(`${service.base}/widget.css`);
+    assert.equal(css.status, 200);
+    assert.match(css.headers.get('content-type'), /^text\/css/);
+    assert.match(await css.text(), /--altcha-/);
+    const georgian = await fetch(`${service.base}/i18n/ka.js`);
+    assert.equal(georgian.status, 200);
+    assert.match(georgian.headers.get('content-type'), /^text\/javascript/);
+    assert.match(await georgian.text(), /i18n\.set\("ka"/);
+    assert.equal((await fetch(`${service.base}/i18n/xx.js`)).status, 404);
+  });
+
   test('the root is a page about the service whose style the CSP allows', async () => {
     const response = await fetch(`${service.base}/`);
     assert.equal(response.status, 200);

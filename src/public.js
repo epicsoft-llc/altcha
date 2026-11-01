@@ -1,4 +1,5 @@
-// The public port: a page about the service, widget, challenge, verify, submit and subscribe.
+// The public port: a page about the service, widget (also without inline style, with its style sheet and languages),
+// challenge, verify, submit and subscribe.
 // A browser request is mapped to a site by its Origin (or Referer); CORS only lets the browser
 // read the answer, the protection is the check on this side.
 
@@ -295,7 +296,8 @@ export function createPublicHandler({ config, store, altcha, limiter, stats, mai
     const path = new URL(req.url, 'http://localhost').pathname;
 
     if ((req.method === 'GET' || req.method === 'HEAD') && widgets.has(path)) {
-      serveStatic(req, res, widgets.get(path), WIDGET_HEADERS);
+      const asset = widgets.get(path);
+      serveStatic(req, res, asset, { ...WIDGET_HEADERS, 'Content-Type': asset.type });
       return;
     }
     if ((req.method === 'GET' || req.method === 'HEAD') && path === '/') {

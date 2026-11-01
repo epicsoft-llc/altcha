@@ -163,6 +163,18 @@ form-action 'self' https://altcha.example.com
 
 `form-action` only matters for a form that posts to `/submit` or `/subscribe` directly. For the `<style>` element, either allow `'unsafe-inline'` in `style-src`, or put the nonce of your CSP into `<meta name="csp-nonce" content="…">` — the widget sets it on the element.
 
+Or load the widget without that element: its styles come as a file, its texts as a module per language, and `style-src` only needs the service.
+
+```html
+<link rel="stylesheet" href="https://altcha.example.com/widget.css">
+<script type="module" src="https://altcha.example.com/widget.external.js"></script>
+<script type="module" src="https://altcha.example.com/i18n/de.js"></script>
+```
+
+```
+style-src 'self' https://altcha.example.com
+```
+
 ### A form handled by your own backend
 
 The widget writes its solution into the form field `altcha`. Your backend passes it on:
