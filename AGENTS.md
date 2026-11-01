@@ -46,7 +46,8 @@ docker build -t altcha:dev .
 src/
 ├── server.js       entry point: config, two HTTP servers, shutdown; start() is what the tests call
 ├── config.js       environment variables, <NAME>_FILE secrets, validation - fails the start with a clear message
-├── public.js       public port: /, /widget.js, /widget.i18n.js, /challenge, /verify, /submit, /subscribe
+├── public.js       public port: /, /widget.js, /widget.i18n.js, /widget.external.js, /widget.css, /i18n/<lang>.js,
+│                   /challenge, /verify, /submit, /subscribe
 ├── info.js         the page on / of the public port: about the service, the operator from PAGE_*
 ├── admin.js        admin port: UI, /api/*, /metrics, /healthz, CSRF header
 ├── notifuse.js     /notifuse/webhook on the admin port: Standard Webhooks signature, replay guard, list events by mail

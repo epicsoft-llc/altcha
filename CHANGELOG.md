@@ -13,6 +13,14 @@ the versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 **A release is a git tag `X.Y.Z`** that matches `version` in `package.json`. CI builds `X.Y.Z`, `X.Y`, `X`
 from it, moves `latest` and creates the GitHub release from the entry below.
 
+## [0.6.0] - 2026-11-01
+
+### Added
+
+- `GET /widget.external.js`, `GET /widget.css` and `GET /i18n/<lang>.js` - the widget without the `<style>` element
+  it adds to the page, its styles as a file and its texts per language. A page that loads these three can drop
+  `'unsafe-inline'` from `style-src`; `/widget.js` and `/widget.i18n.js` stay as they are
+
 ## [0.5.0] - 2026-10-27
 
 ### Added

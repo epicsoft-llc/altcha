@@ -24,7 +24,8 @@ const TYPES = {
   '.svg': 'image/svg+xml',
 };
 
-const PUBLIC_ROUTES = new Set(['/', '/widget.js', '/widget.i18n.js', '/challenge', '/verify', '/submit', '/subscribe']);
+const PUBLIC_ROUTES = new Set(['/', '/widget.js', '/widget.i18n.js', '/widget.external.js', '/widget.css', '/challenge', '/verify', '/submit', '/subscribe']);
+const LANGUAGE_ROUTE = /^\/i18n\/[\w-]+\.js$/;
 const ADMIN_ROUTES = [
   [/^\/api\/sites\/\d+\/test-mail$/, '/api/sites/:id/test-mail'],
   [/^\/api\/sites\/\d+$/, '/api/sites/:id'],
@@ -39,9 +40,10 @@ function readJsonFile(relative) {
 function loadAssets() {
   const version = readJsonFile('package.json').version;
   const widgetVersion = readJsonFile('node_modules/altcha/package.json').version;
-  const widget = (file) => ({
-    body: fs.readFileSync(new URL(`node_modules/altcha/dist/main/${file}`, ROOT)),
-    etag: `"altcha-${widgetVersion}-${file}"`,
+  const widget = (dir, file, type = TYPES['.js']) => ({
+    body: fs.readFileSync(new URL(`node_modules/altcha/dist/${dir}/${file}`, ROOT)),
+    etag: `"altcha-${widgetVersion}-${dir}-${file}"`,
+    type,
   });
   const ui = new Map();
   const uiDir = new URL('ui/', ROOT);
@@ -67,8 +69,13 @@ function loadAssets() {
     widgetVersion,
     widgetLanguages,
     widgets: new Map([
-      ['/widget.js', widget('altcha.min.js')],
-      ['/widget.i18n.js', widget('altcha.i18n.min.js')],
+      ['/widget.js', widget('main', 'altcha.min.js')],
+      ['/widget.i18n.js', widget('main', 'altcha.i18n.min.js')],
+      // The same widget without the <style> element it adds to the page, for a CSP without 'unsafe-inline' in style-src:
+      // its styles come as a file, its texts per language.
+      ['/widget.external.js', widget('external', 'altcha.min.js')],
+      ['/widget.css', widget('external', 'altcha.css', TYPES['.css'])],
+      ...widgetLanguages.map((code) => [`/i18n/${code}.js`, widget('i18n', `${code}.js`)]),
     ]),
     ui,
   };
@@ -82,6 +89,9 @@ export const consoleLog = {
 // A fixed set of route labels, so a scanner cannot grow the metrics with made-up paths.
 function routeLabel(port, pathname, uiAssets) {
   if (port === 'public') {
+    if (LANGUAGE_ROUTE.test(pathname)) {
+      return '/i18n/:lang.js';
+    }
     return PUBLIC_ROUTES.has(pathname) ? pathname : 'other';
   }
   if (uiAssets.has(pathname)) {
