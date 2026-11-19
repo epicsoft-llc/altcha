@@ -13,6 +13,18 @@ the versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 **A release is a git tag `X.Y.Z`** that matches `version` in `package.json`. CI builds `X.Y.Z`, `X.Y`, `X`
 from it, moves `latest` and creates the GitHub release from the entry below.
 
+## [0.6.1] - 2026-11-19
+
+### Security
+
+- A rebuild for the security updates since `0.6.0`, which the image only takes in with a release: Node.js `24.22.3`
+  (a security release), OpenSSL `3.5.9-r1` with the security patches Alpine added on 2026-11-18, zlib `1.4` and
+  Alpine `3.24.4`. Nothing changes in behaviour
+
+### Changed
+
+- README: the compose example and the tag table name the current release; they still showed `0.5.0`
+
 ## [0.6.0] - 2026-11-01
 
 ### Added

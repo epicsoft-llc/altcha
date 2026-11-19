@@ -76,7 +76,7 @@ A request from a browser is mapped to a site by its `Origin` header (or `Referer
 ```yaml
 services:
   altcha:
-    image: epicsoft/altcha:0.5.0
+    image: epicsoft/altcha:0.6.1
     restart: unless-stopped
     environment:
       PUBLIC_URL: https://altcha.example.com
@@ -342,8 +342,8 @@ Released through a git tag `X.Y.Z`, which publishes `X.Y.Z`, `X.Y`, `X` and move
 
 | Tag | Content |
 |---|---|
-| `0.5.0` | exactly this build - **use this in production** |
-| `0.5` | latest patch of `0.5` |
+| `0.6.1` | exactly this build - **use this in production** |
+| `0.6` | latest patch of `0.6` |
 | `latest` | newest release of any version - **can change the major version without warning** |
 | `develop` | current state of the `develop` branch, not for production |
 
