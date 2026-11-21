@@ -325,7 +325,7 @@
         <div class="code"><pre><code id="code-verify"></code></pre><button type="button" class="icon-button copy" data-copy="code-verify" aria-label="Copy"><svg class="icon"><use href="#i-copy"/></svg></button></div>
       </div>
       <div id="panel-csp" role="tabpanel" aria-labelledby="tab-csp" class="code-panel" hidden>
-        <p class="muted small">Only needed if the page sends a Content Security Policy. The widget loads from this service, fetches its challenge from it, solves it in Web Workers from a <code>blob:</code> URL and adds one <code>&lt;style&gt;</code> element — allow <code>'unsafe-inline'</code> styles or put your CSP nonce into <code>&lt;meta name="csp-nonce" content="…"&gt;</code>.</p>
+        <p class="muted small">Only needed if the page sends a Content Security Policy. The widget loads from this service with its style sheet, fetches its challenge from it and solves it in Web Workers from a <code>blob:</code> URL. It puts no inline style into the page, so <code>'unsafe-inline'</code> is not needed.</p>
         <div class="code"><pre><code id="code-csp"></code></pre><button type="button" class="icon-button copy" data-copy="code-csp" aria-label="Copy"><svg class="icon"><use href="#i-copy"/></svg></button></div>
       </div>
     </div>

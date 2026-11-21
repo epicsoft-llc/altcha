@@ -7,11 +7,11 @@ Part of the [ALTCHA service](../README.md). Both ports speak JSON.
 | Route | Purpose |
 |---|---|
 | `GET /` | an HTML page about the service: what it does, links to the source and the image, and - from the `PAGE_*` variables - who runs it with links to their legal notice and privacy policy. No cookies, nothing loaded from elsewhere |
-| `GET /widget.js` | the ALTCHA widget (ES module, English) |
-| `GET /widget.i18n.js` | the widget with all translations |
-| `GET /widget.external.js` | the widget without the `<style>` element it adds to the page - for a CSP without `'unsafe-inline'` in `style-src`, together with `/widget.css` and one language from `/i18n/<lang>.js` |
-| `GET /widget.css` | the styles of `/widget.external.js` |
-| `GET /i18n/<lang>.js` | the texts of one language for `/widget.external.js` (ES module); `GET /api/status` lists the languages |
+| `GET /widget.csp.js` | the widget to embed: links `/widget.css`, loads `/widget.js` and the texts of the one language the widget will show (its `language`, else `<html lang>`, else the browser). No inline style, so a CSP needs no `'unsafe-inline'` |
+| `GET /widget.js` | the ALTCHA widget as published (ES module, English) - loaded on its own it adds a `<style>` element |
+| `GET /widget.i18n.js` | the same with all translations |
+| `GET /widget.css` | the styles of the widget and the rule for the honeypot class `altcha-honeypot` |
+| `GET /i18n/<lang>.js` | the texts of one language (ES module); `GET /api/status` lists the languages |
 | `GET /challenge` | a new challenge for the site of the `Origin` |
 | `POST /verify` | check a solution, from a browser or a backend |
 | `POST /submit` | check a solution and mail the form to the site's recipient |

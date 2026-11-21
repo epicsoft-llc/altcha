@@ -1,4 +1,4 @@
-// The public port: a page about the service, widget (also without inline style, with its style sheet and languages),
+// The public port: a page about the service, widget (also for a CSP without inline style, with its style sheet and languages),
 // challenge, verify, submit and subscribe.
 // A browser request is mapped to a site by its Origin (or Referer); CORS only lets the browser
 // read the answer, the protection is the check on this side.

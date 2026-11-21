@@ -1,6 +1,7 @@
 // Entry point: two HTTP servers on one process - the public port for widgets and
 // forms, the admin port for the UI. Nothing on the public port can change a site.
 
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
@@ -14,6 +15,7 @@ import { RateLimiter } from './ratelimit.js';
 import { createMailer } from './smtp.js';
 import { Stats } from './stats.js';
 import { Store } from './store.js';
+import { cspWidget } from './widget-csp.js';
 
 const ROOT = new URL('../', import.meta.url);
 
@@ -24,7 +26,7 @@ const TYPES = {
   '.svg': 'image/svg+xml',
 };
 
-const PUBLIC_ROUTES = new Set(['/', '/widget.js', '/widget.i18n.js', '/widget.external.js', '/widget.css', '/challenge', '/verify', '/submit', '/subscribe']);
+const PUBLIC_ROUTES = new Set(['/', '/widget.csp.js', '/widget.js', '/widget.i18n.js', '/widget.css', '/challenge', '/verify', '/submit', '/subscribe']);
 const LANGUAGE_ROUTE = /^\/i18n\/[\w-]+\.js$/;
 const ADMIN_ROUTES = [
   [/^\/api\/sites\/\d+\/test-mail$/, '/api/sites/:id/test-mail'],
@@ -43,6 +45,11 @@ function loadAssets() {
   const widget = (dir, file, type = TYPES['.js']) => ({
     body: fs.readFileSync(new URL(`node_modules/altcha/dist/${dir}/${file}`, ROOT)),
     etag: `"altcha-${widgetVersion}-${dir}-${file}"`,
+    type,
+  });
+  const built = (name, source, type) => ({
+    body: Buffer.from(source),
+    etag: `"${name}-${crypto.createHash('sha256').update(source).digest('hex').slice(0, 16)}"`,
     type,
   });
   const ui = new Map();
@@ -64,17 +71,23 @@ function loadAssets() {
     .map((file) => file.slice(0, -3))
     .filter((code) => !regions.has(code))
     .sort();
+  // The widget's styles plus the rule for the honeypot field, so a form needs no <style> block of its own.
+  const styles = `${fs.readFileSync(new URL('node_modules/altcha/dist/external/altcha.css', ROOT), 'utf8')}
+/* the honeypot field of a form: out of sight for people, bots fill it in */
+.altcha-honeypot {
+  position: absolute;
+  left: -10000px;
+}
+`;
   return {
     version,
     widgetVersion,
     widgetLanguages,
     widgets: new Map([
+      ['/widget.csp.js', built('csp', cspWidget(widgetLanguages), TYPES['.js'])],
       ['/widget.js', widget('main', 'altcha.min.js')],
       ['/widget.i18n.js', widget('main', 'altcha.i18n.min.js')],
-      // The same widget without the <style> element it adds to the page, for a CSP without 'unsafe-inline' in style-src:
-      // its styles come as a file, its texts per language.
-      ['/widget.external.js', widget('external', 'altcha.min.js')],
-      ['/widget.css', widget('external', 'altcha.css', TYPES['.css'])],
+      ['/widget.css', built('css', styles, TYPES['.css'])],
       ...widgetLanguages.map((code) => [`/i18n/${code}.js`, widget('i18n', `${code}.js`)]),
     ]),
     ui,

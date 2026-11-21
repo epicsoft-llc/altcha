@@ -13,6 +13,31 @@ the versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 **A release is a git tag `X.Y.Z`** that matches `version` in `package.json`. CI builds `X.Y.Z`, `X.Y`, `X`
 from it, moves `latest` and creates the GitHub release from the entry below.
 
+## [0.7.0] - 2026-11-21
+
+**Breaking:** `GET /widget.external.js` is gone - use `GET /widget.csp.js`, see below.
+
+### Added
+
+- `GET /widget.csp.js` - the widget to embed, also on a page whose Content Security Policy allows no inline style. It
+  links `/widget.css`, loads `/widget.js` and then the texts of the one language the widget will show: its `language`
+  attribute, else the page language, else the browser's. One script tag; a CSP needs the service in `style-src` and no
+  `'unsafe-inline'`. Every language under `/i18n/` works this way, also those missing from `/widget.i18n.js`
+- `/widget.css` brings the rule for the honeypot class `altcha-honeypot`, so a form needs no `<style>` block of its own
+- A test that the published widget registers a solver for every algorithm the service issues and skips its `<style>`
+  element for `altcha-css` - the two details `/widget.csp.js` relies on
+
+### Changed
+
+- The embed snippets in the admin UI, the README and `docs/newsletter.md` use `/widget.csp.js` and the class
+  `altcha-honeypot`; the CSP snippet lists `style-src`. The language choice "English only" is gone - `/widget.csp.js`
+  loads at most one language anyway
+
+### Removed
+
+- `GET /widget.external.js`. It lacked the solvers for the challenges this service issues (PBKDF2 and SHA), so a page
+  set up as the README described could not verify. `/widget.css` and `/i18n/<lang>.js` stay
+
 ## [0.6.1] - 2026-11-19
 
 ### Security

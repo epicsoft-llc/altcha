@@ -58,7 +58,7 @@ On a phone:
 
 ```
 browser                      this service                         your backend (optional)
-   |  GET  /widget.js  ---------->|
+   |  GET  /widget.csp.js  ------>|
    |  GET  /challenge  ---------->|  signed challenge for the site of the Origin
    |  (widget solves it)          |
    |  POST /submit  ------------->|  verify, mark as spent, mail to the site's recipient
@@ -76,7 +76,7 @@ A request from a browser is mapped to a site by its `Origin` header (or `Referer
 ```yaml
 services:
   altcha:
-    image: epicsoft/altcha:0.6.1
+    image: epicsoft/altcha:0.7.0
     restart: unless-stopped
     environment:
       PUBLIC_URL: https://altcha.example.com
@@ -123,28 +123,24 @@ Open the admin UI on port `8081`, create a site with its origins (for example `h
 ### A form mailed by the service
 
 ```html
-<script type="module" src="https://altcha.example.com/widget.js"></script>
+<script type="module" src="https://altcha.example.com/widget.csp.js"></script>
 
 <form action="https://altcha.example.com/submit" method="post">
   <input name="name" required>
   <input name="email" type="email" required>
   <input name="subject">
   <textarea name="message" required></textarea>
-  <input name="website" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp">
+  <input name="website" tabindex="-1" autocomplete="off" aria-hidden="true" class="altcha-honeypot">
   <altcha-widget challenge="https://altcha.example.com/challenge"></altcha-widget>
   <button type="submit">Send</button>
 </form>
-
-<style>
-  .hp { position: absolute; left: -10000px; }
-</style>
 ```
 
 - No build step and no npm package — the same two lines work in a hand-written HTML file, in Astro and in Angular.
 - A plain form post (as above) is redirected to the site's **page after sending** or **page after an error**; the error page receives the reason as `?error=<reason>`. Without these pages, and for every request sent with `fetch`, the answer is JSON: `{"ok":true}` or `{"ok":false,"error":"<reason>"}`.
 - Every field of the form ends up in the mail. `email`, when it holds a plain address, becomes the `Reply-To`; `subject` follows the site's subject prefix, separated by a space.
-- `website` is the honeypot (`HONEYPOT_FIELD`): a human never fills it in. A submission that does is answered like a success and dropped. Under a Content Security Policy without `'unsafe-inline'` for styles the `<style>` block is ignored and the field shows — move the rule into your stylesheet then.
-- For a widget in another language use `/widget.i18n.js` (all translations, about 180 kB instead of 120 kB) and set `language="de"` on `<altcha-widget>`.
+- `website` is the honeypot (`HONEYPOT_FIELD`): a human never fills it in. A submission that does is answered like a success and dropped. The class `altcha-honeypot` moves it out of sight; the rule comes with the widget's style sheet.
+- The widget speaks the language of its `language` attribute, else of the page (`<html lang>`), else of the browser. `/widget.csp.js` loads the texts of that one language; English is built in.
 
 ### A newsletter sign-up
 
@@ -152,28 +148,17 @@ Open the admin UI on port `8081`, create a site with its origins (for example `h
 
 ### Pages with a Content Security Policy
 
-The widget is loaded from this service, fetches its challenge from it, solves it in Web Workers it creates from a `blob:` URL (falling back to `data:`), and adds one `<style>` element to the page. A page with a CSP has to allow that:
+The widget is loaded from this service together with its style sheet, fetches its challenge from it and solves it in Web Workers it creates from a `blob:` URL (falling back to `data:`). It puts no inline style into the page. A page with a CSP has to allow that:
 
 ```
 script-src  'self' https://altcha.example.com
+style-src   'self' https://altcha.example.com
 connect-src 'self' https://altcha.example.com
 worker-src  'self' blob:
 form-action 'self' https://altcha.example.com
 ```
 
-`form-action` only matters for a form that posts to `/submit` or `/subscribe` directly. For the `<style>` element, either allow `'unsafe-inline'` in `style-src`, or put the nonce of your CSP into `<meta name="csp-nonce" content="…">` — the widget sets it on the element.
-
-Or load the widget without that element: its styles come as a file, its texts as a module per language, and `style-src` only needs the service.
-
-```html
-<link rel="stylesheet" href="https://altcha.example.com/widget.css">
-<script type="module" src="https://altcha.example.com/widget.external.js"></script>
-<script type="module" src="https://altcha.example.com/i18n/de.js"></script>
-```
-
-```
-style-src 'self' https://altcha.example.com
-```
+`form-action` only matters for a form that posts to `/submit` or `/subscribe` directly. `/widget.js` and `/widget.i18n.js` are the widget as ALTCHA publishes it: loaded on their own, they add a `<style>` element and need `'unsafe-inline'` in `style-src`, or the nonce of your CSP in `<meta name="csp-nonce" content="…">`.
 
 ### A form handled by your own backend
 
@@ -196,8 +181,9 @@ A refused solution is answered with `403` and `{"ok": false, "error": "<reason>"
 | Route | Purpose |
 |---|---|
 | `GET /` | a page about the service and its source; who runs it comes from the `PAGE_*` variables |
-| `GET /widget.js` | the ALTCHA widget (ES module, English) |
-| `GET /widget.i18n.js` | the widget with all translations |
+| `GET /widget.csp.js` | the widget to embed: its style sheet as a file and the texts of one language - no inline style |
+| `GET /widget.js` | the ALTCHA widget as published (ES module, English) |
+| `GET /widget.i18n.js` | the same with all translations |
 | `GET /challenge` | a new challenge for the site of the `Origin` |
 | `POST /verify` | check a solution, from a browser or a backend |
 | `POST /submit` | check a solution and mail the form to the site's recipient |
@@ -342,8 +328,8 @@ Released through a git tag `X.Y.Z`, which publishes `X.Y.Z`, `X.Y`, `X` and move
 
 | Tag | Content |
 |---|---|
-| `0.6.1` | exactly this build - **use this in production** |
-| `0.6` | latest patch of `0.6` |
+| `0.7.0` | exactly this build - **use this in production** |
+| `0.7` | latest patch of `0.7` |
 | `latest` | newest release of any version - **can change the major version without warning** |
 | `develop` | current state of the `develop` branch, not for production |
 
