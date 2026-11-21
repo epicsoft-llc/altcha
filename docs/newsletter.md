@@ -7,7 +7,7 @@
   <input name="email" type="email" required>
   <input name="name">
   <input name="language" type="hidden" value="en">
-  <input name="website" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp">
+  <input name="website" tabindex="-1" autocomplete="off" aria-hidden="true" class="altcha-honeypot">
   <altcha-widget challenge="https://altcha.example.com/challenge"></altcha-widget>
   <button type="submit">Subscribe</button>
 </form>

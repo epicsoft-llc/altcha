@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { after, before, describe, test } from 'node:test';
+import { ALGORITHMS } from '../src/config.js';
 import { createSite, fetchChallenge, solve, startNewsletterSink, startService, startSmtpSink, tempDir } from './helpers.js';
 
 const ORIGIN = 'https://forms.example.com';
@@ -72,22 +73,38 @@ describe('public port', () => {
     assert.match(await response.text(), /customElements\.define/);
   });
 
-  test('serves the widget without inline style, its style sheet and its languages', async () => {
-    const widget = await fetch(`${service.base}/widget.external.js`);
-    assert.equal(widget.status, 200);
-    assert.equal(widget.headers.get('access-control-allow-origin'), '*');
-    const script = await widget.text();
-    assert.match(script, /customElements\.define/);
-    assert.doesNotMatch(script, /createElement\(.style.\)/);
+  test('serves the widget for a CSP without inline style: loader, style sheet and languages', async () => {
+    const loader = await fetch(`${service.base}/widget.csp.js`);
+    assert.equal(loader.status, 200);
+    assert.equal(loader.headers.get('access-control-allow-origin'), '*');
+    assert.match(loader.headers.get('content-type'), /^text\/javascript/);
+    const script = await loader.text();
+    for (const part of ["'altcha-css'", "'widget.css'", "'widget.js'", '"ka"', 'i18n/']) {
+      assert.ok(script.includes(part), part);
+    }
+    assert.match(loader.headers.get('etag'), /^"csp-[0-9a-f]{16}"$/);
     const css = await fetch(`${service.base}/widget.css`);
     assert.equal(css.status, 200);
     assert.match(css.headers.get('content-type'), /^text\/css/);
-    assert.match(await css.text(), /--altcha-/);
+    const styles = await css.text();
+    assert.match(styles, /--altcha-/);
+    assert.match(styles, /\.altcha-honeypot \{\s+position: absolute;\s+left: -10000px;/);
     const georgian = await fetch(`${service.base}/i18n/ka.js`);
     assert.equal(georgian.status, 200);
     assert.match(georgian.headers.get('content-type'), /^text\/javascript/);
     assert.match(await georgian.text(), /i18n\.set\("ka"/);
     assert.equal((await fetch(`${service.base}/i18n/xx.js`)).status, 404);
+    assert.equal((await fetch(`${service.base}/widget.external.js`)).status, 404);
+  });
+
+  // widget.csp.js relies on two details of the published widget that ALTCHA does not document - a widget update that
+  // breaks one of them has to fail here, not in a visitor's browser.
+  test('the published widget solves every algorithm the service issues and skips its style for altcha-css', async () => {
+    const script = await (await fetch(`${service.base}/widget.js`)).text();
+    for (const algorithm of ALGORITHMS) {
+      assert.ok(script.includes(`algorithms.set("${algorithm}"`), algorithm);
+    }
+    assert.match(script, /="altcha-css"\)\{if\([^{]*!document\.getElementById\(/);
   });
 
   test('the root is a page about the service whose style the CSP allows', async () => {

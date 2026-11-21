@@ -46,9 +46,10 @@ docker build -t altcha:dev .
 src/
 ├── server.js       entry point: config, two HTTP servers, shutdown; start() is what the tests call
 ├── config.js       environment variables, <NAME>_FILE secrets, validation - fails the start with a clear message
-├── public.js       public port: /, /widget.js, /widget.i18n.js, /widget.external.js, /widget.css, /i18n/<lang>.js,
+├── public.js       public port: /, /widget.csp.js, /widget.js, /widget.i18n.js, /widget.css, /i18n/<lang>.js,
 │                   /challenge, /verify, /submit, /subscribe
 ├── info.js         the page on / of the public port: about the service, the operator from PAGE_*
+├── widget-csp.js   the source of /widget.csp.js, built at start with the languages under /i18n/
 ├── admin.js        admin port: UI, /api/*, /metrics, /healthz, CSRF header
 ├── notifuse.js     /notifuse/webhook on the admin port: Standard Webhooks signature, replay guard, list events by mail
 ├── auth.js         sign-in on the admin port: proxy header, Basic auth, API token, lockout after failures
@@ -110,6 +111,9 @@ examples/           prometheus-alerts.yml
   (`node.style.setProperty`, `node.style.width = …`), which the CSP allows. `setAttribute('style', …)` is silently
   blocked.
 - **Every file in `ui/` is served** under its name (types by extension in `server.js`); a new module needs nothing else.
+- **`/widget.csp.js` relies on two undocumented details of the published widget:** `widget.js` registers a solver
+  for every algorithm in `ALGORITHMS`, and it skips its `<style>` element while an element with the id `altcha-css`
+  exists. A test checks both - after an ALTCHA update that breaks one, fix `widget-csp.js`, never drop the test.
 - **The page on `/` names no operator of its own.** Who runs an instance comes only from the `PAGE_*` variables, every
   value goes through `escapeHtml`. It loads nothing: the CSP allows its inline style by hash and images as `data:` only.
 - **Database access only in `store.js`.** A schema change is a new entry at the end of `MIGRATIONS`, never an edit of

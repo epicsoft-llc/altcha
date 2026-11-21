@@ -878,8 +878,7 @@ function renderLanguageOptions() {
     }
   };
   const options = [
-    el('option', { value: 'auto' }, 'Visitor\'s browser language'),
-    el('option', { value: 'en-only' }, 'English only (smaller file)'),
+    el('option', { value: 'auto' }, 'Language of the page or browser'),
     ...state.status.widgetLanguages.map((code) => el('option', { value: code }, `${languageName(code)} (${code})`)),
   ];
   select.replaceChildren(...options);
@@ -893,18 +892,11 @@ function renderEmbed() {
   const site = state.embedSite;
   const base = publicBase();
   const language = $('#embed-language').value;
-  const script = language === 'en-only' ? 'widget.js' : 'widget.i18n.js';
-  const languageAttribute = language === 'auto' || language === 'en-only' ? '' : ` language="${language}"`;
+  const languageAttribute = language === 'auto' ? '' : ` language="${language}"`;
   const widgetTag = `<altcha-widget challenge="${base}/challenge"${languageAttribute}></altcha-widget>`;
-  const scriptTag = `<script type="module" src="${base}/${script}"></script>`;
-  const honeypot = `  <input name="${state.status.honeypotField}" tabindex="-1" autocomplete="off" aria-hidden="true" class="hp">`;
-  const honeypotStyle = [
-    '',
-    '<style>',
-    '  /* the honeypot: people never see it, bots fill it in - with a strict CSP move this rule into your stylesheet */',
-    '  .hp { position: absolute; left: -10000px; }',
-    '</style>',
-  ];
+  // widget.csp.js brings the styles as a file, the honeypot rule included - no <style> block on the page.
+  const scriptTag = `<script type="module" src="${base}/widget.csp.js"></script>`;
+  const honeypot = `  <input name="${state.status.honeypotField}" tabindex="-1" autocomplete="off" aria-hidden="true" class="altcha-honeypot">`;
 
   $('#embed-hint').textContent = state.status.publicUrl
     ? `${site.name} · works on ${site.origins.length === 1 ? site.origins[0] : `${site.origins.length} origins`}`
@@ -932,7 +924,6 @@ function renderEmbed() {
       `  ${widgetTag}`,
       '  <button type="submit">Send</button>',
       '</form>',
-      ...honeypotStyle,
     ].join('\n');
   }
 
@@ -958,7 +949,6 @@ function renderEmbed() {
       `  ${widgetTag}`,
       '  <button type="submit">Subscribe</button>',
       '</form>',
-      ...honeypotStyle,
     ].join('\n');
   }
 
@@ -984,6 +974,7 @@ function renderEmbed() {
   const origin = new URL(base).origin;
   $('#code-csp').textContent = [
     `script-src  'self' ${origin}`,
+    `style-src   'self' ${origin}`,
     `connect-src 'self' ${origin}`,
     "worker-src  'self' blob:",
     ...(site.recipient === null && site.subscription === null ? [] : [`form-action 'self' ${origin}`]),
